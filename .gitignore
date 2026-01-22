@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Environments
+.venv/
+env/
+venv/
+
+# Build / packaging
+build/
+dist/
+
+# Project outputs & caches
+outputs/
+
+# Large datasets (keep metadata TSVs, ignore audio clips)
+datasets/**/clips/
+
+# Local tool/version files
+.python-version
