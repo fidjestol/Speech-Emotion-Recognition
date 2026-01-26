@@ -15,14 +15,12 @@ from __future__ import annotations
 
 import pathlib
 from dataclasses import dataclass
+import json
+import math
 
 import librosa
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 
-# Use a non-interactive backend so plots can be generated in headless runs.
-matplotlib.use("Agg")
 
 
 # -------- Configuration ----------------------------------------------------
@@ -188,6 +186,11 @@ def print_summary(result: EnergyResult) -> None:
 
 def plot_features(result: EnergyResult, output_path: pathlib.Path) -> None:
     """Create a two-panel figure: waveform + RMS energy contour."""
+    import matplotlib
+
+    # Use a non-interactive backend so plots can be generated in headless runs.
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
 
     times = librosa.times_like(result.rms_db, sr=result.sr, hop_length=result.hop_length)
 
@@ -211,9 +214,91 @@ def plot_features(result: EnergyResult, output_path: pathlib.Path) -> None:
     plt.close(fig)
 
 
+def _to_serializable(value: float | int | None) -> float | int | None:
+    """Convert values to JSON-safe scalars."""
+
+    if value is None:
+        return None
+    if isinstance(value, np.generic):
+        value = value.item()
+    if isinstance(value, (int, float)):
+        return value if math.isfinite(value) else None
+    return value
+
+
+def summary_dict(result: EnergyResult) -> dict[str, float | int | None]:
+    """Build a JSON-friendly summary for downstream analysis."""
+
+    rms_valid = result.rms_db[~np.isnan(result.rms_db)]
+    voiced_ratio = rms_valid.size / max(1, result.rms_db.size)
+
+    summary: dict[str, float | int | None] = {
+        "sample_rate": result.sr,
+        "duration_s": result.duration,
+        "frames_total": int(result.rms_db.size),
+        "voiced_ratio": float(voiced_ratio),
+        "rms_threshold_db": result.rms_db_threshold,
+        "rms_percentile": result.rms_db_percentile,
+        "rms_effective_db": result.rms_db_effective_threshold,
+        "silence_top_db": result.silence_top_db,
+        "min_voiced_frames": result.min_voiced_frames,
+    }
+    if rms_valid.size:
+        p10, p90 = np.percentile(rms_valid, [10, 90])
+        summary.update(
+            {
+                "rms_mean_db": float(rms_valid.mean()),
+                "rms_median_db": float(np.median(rms_valid)),
+                "rms_min_db": float(rms_valid.min()),
+                "rms_max_db": float(rms_valid.max()),
+                "rms_p10_db": float(p10),
+                "rms_p90_db": float(p90),
+            }
+        )
+    else:
+        summary.update(
+            {
+                "rms_mean_db": None,
+                "rms_median_db": None,
+                "rms_min_db": None,
+                "rms_max_db": None,
+                "rms_p10_db": None,
+                "rms_p90_db": None,
+            }
+        )
+
+    summary = {key: _to_serializable(value) for key, value in summary.items()}
+    return summary
+
+
+def save_summary(
+    summary: dict[str, float | int | None],
+    output_path: pathlib.Path | None,
+    *,
+    ndjson_path: pathlib.Path | None = None,
+) -> None:
+    """Write summary metrics to JSON or append to NDJSON."""
+
+    if ndjson_path is not None:
+        with ndjson_path.open("a", encoding="utf-8") as handle:
+            json.dump(summary, handle, separators=(",", ":"))
+            handle.write("\n")
+        return
+
+    if output_path is None:
+        raise ValueError("output_path is required when ndjson_path is None")
+    with output_path.open("w", encoding="utf-8") as handle:
+        json.dump(summary, handle, separators=(",", ":"))
+
+
 # -------- Entrypoint -------------------------------------------------------
 
-def process_file(filename: str = DEFAULT_FILENAME) -> pathlib.Path:
+def process_file(
+    filename: str = DEFAULT_FILENAME,
+    *,
+    plot: bool = True,
+    ndjson_path: pathlib.Path | None = None,
+) -> pathlib.Path:
     """End-to-end processing for a single file; returns plot path."""
 
     audio_path = DATA_ROOT / filename
@@ -225,8 +310,18 @@ def process_file(filename: str = DEFAULT_FILENAME) -> pathlib.Path:
     print_summary(result)
 
     output_path = OUTPUT_DIR / f"energy_{audio_path.stem}.png"
-    plot_features(result, output_path)
-    print(f"\nSaved visualization to: {output_path}")
+    if plot:
+        plot_features(result, output_path)
+        print(f"\nSaved visualization to: {output_path}")
+
+    summary = summary_dict(result)
+    if ndjson_path is None:
+        summary_path = OUTPUT_DIR / f"energy_{audio_path.stem}_summary.json"
+        save_summary(summary, summary_path)
+        print(f"Saved summary to: {summary_path}")
+    else:
+        save_summary(summary, None, ndjson_path=ndjson_path)
+        print(f"Appended summary to: {ndjson_path}")
     return output_path
 
 

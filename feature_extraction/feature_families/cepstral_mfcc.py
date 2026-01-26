@@ -16,15 +16,12 @@ from __future__ import annotations
 
 import pathlib
 from dataclasses import dataclass
+import json
+import math
 
 import librosa
-import librosa.display as ldisplay
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 
-# Use a non-interactive backend so plots can be generated in headless runs.
-matplotlib.use("Agg")
 
 
 # -------- Configuration ----------------------------------------------------
@@ -119,6 +116,11 @@ def plot_features(result: MFCCResult, output_path: pathlib.Path) -> None:
     Why: Visual inspection helps spot clipping, silence, or unusual spectral
     patterns that could mislead the model.
     """
+    import matplotlib
+    # Use a non-interactive backend so plots can be generated in headless runs.
+    matplotlib.use("Agg")
+    import librosa.display as ldisplay
+    import matplotlib.pyplot as plt
 
     times = librosa.times_like(result.mfcc, sr=result.sr, hop_length=256)
 
@@ -145,9 +147,72 @@ def plot_features(result: MFCCResult, output_path: pathlib.Path) -> None:
     plt.close(fig)
 
 
+def _to_serializable(value: float | int | None) -> float | int | None:
+    """Convert values to JSON-safe scalars."""
+
+    if value is None:
+        return None
+    if isinstance(value, np.generic):
+        value = value.item()
+    if isinstance(value, (int, float)):
+        return value if math.isfinite(value) else None
+    return value
+
+
+def summary_dict(result: MFCCResult) -> dict[str, float | int | None]:
+    """Build a JSON-friendly summary for downstream analysis."""
+
+    summary: dict[str, float | int | None] = {
+        "sample_rate": result.sr,
+        "duration_s": result.duration,
+        "n_mfcc": int(result.mfcc.shape[0]),
+        "frames_total": int(result.mfcc.shape[1]),
+    }
+
+    mfcc_means = result.mfcc.mean(axis=1)
+    mfcc_stds = result.mfcc.std(axis=1)
+    for idx, (mean_val, std_val) in enumerate(zip(mfcc_means, mfcc_stds)):
+        summary[f"mfcc_c{idx:02d}_mean"] = float(mean_val)
+        summary[f"mfcc_c{idx:02d}_std"] = float(std_val)
+
+    delta_abs_means = np.abs(result.delta).mean(axis=1)
+    delta2_abs_means = np.abs(result.delta2).mean(axis=1)
+    for idx, (d1_val, d2_val) in enumerate(zip(delta_abs_means, delta2_abs_means)):
+        summary[f"mfcc_delta_c{idx:02d}_mean_abs"] = float(d1_val)
+        summary[f"mfcc_delta2_c{idx:02d}_mean_abs"] = float(d2_val)
+
+    summary = {key: _to_serializable(value) for key, value in summary.items()}
+    return summary
+
+
+def save_summary(
+    summary: dict[str, float | int | None],
+    output_path: pathlib.Path | None,
+    *,
+    ndjson_path: pathlib.Path | None = None,
+) -> None:
+    """Write summary metrics to JSON or append to NDJSON."""
+
+    if ndjson_path is not None:
+        with ndjson_path.open("a", encoding="utf-8") as handle:
+            json.dump(summary, handle, separators=(",", ":"))
+            handle.write("\n")
+        return
+
+    if output_path is None:
+        raise ValueError("output_path is required when ndjson_path is None")
+    with output_path.open("w", encoding="utf-8") as handle:
+        json.dump(summary, handle, separators=(",", ":"))
+
+
 # -------- Entrypoint -------------------------------------------------------
 
-def process_file(filename: str = DEFAULT_FILENAME) -> pathlib.Path:
+def process_file(
+    filename: str = DEFAULT_FILENAME,
+    *,
+    plot: bool = True,
+    ndjson_path: pathlib.Path | None = None,
+) -> pathlib.Path:
     """End-to-end processing for a single file; returns plot path."""
 
     audio_path = DATA_ROOT / filename
@@ -159,8 +224,18 @@ def process_file(filename: str = DEFAULT_FILENAME) -> pathlib.Path:
     print_summary(result)
 
     output_path = OUTPUT_DIR / f"mfcc_{audio_path.stem}.png"
-    plot_features(result, output_path)
-    print(f"\nSaved visualization to: {output_path}")
+    if plot:
+        plot_features(result, output_path)
+        print(f"\nSaved visualization to: {output_path}")
+
+    summary = summary_dict(result)
+    if ndjson_path is None:
+        summary_path = OUTPUT_DIR / f"mfcc_{audio_path.stem}_summary.json"
+        save_summary(summary, summary_path)
+        print(f"Saved summary to: {summary_path}")
+    else:
+        save_summary(summary, None, ndjson_path=ndjson_path)
+        print(f"Appended summary to: {ndjson_path}")
     return output_path
 
 
