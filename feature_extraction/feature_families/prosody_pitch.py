@@ -13,16 +13,14 @@ segments without leaking F0 into silence.
 
 from __future__ import annotations
 
+import json
+import math
 import pathlib
 from dataclasses import dataclass
 
 import librosa
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 
-# Use a non-interactive backend so plots can be generated in headless runs.
-matplotlib.use("Agg")
 
 
 # -------- Configuration ----------------------------------------------------
@@ -276,6 +274,11 @@ def plot_features(
     If interpolation is enabled, it is only for visualization, and only fills
     short gaps inside speech. Long silent regions remain as gaps.
     """
+    import matplotlib
+
+    # Use a non-interactive backend so plots can be generated in headless runs.
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
 
     times = librosa.times_like(result.f0, sr=result.sr, hop_length=result.hop_length)
     f0_plot = result.f0.copy()
@@ -336,9 +339,127 @@ def plot_features(
     plt.close(fig)
 
 
+def _to_serializable(value: float | int | None) -> float | int | None:
+    """Convert values to JSON-safe scalars."""
+
+    if value is None:
+        return None
+    if isinstance(value, np.generic):
+        value = value.item()
+    if isinstance(value, (int, float)):
+        return value if math.isfinite(value) else None
+    return value
+
+
+def summary_dict(result: PitchResult) -> dict[str, float | int | None]:
+    """Build a JSON-friendly summary for downstream analysis."""
+
+    f0_valid = result.f0[~np.isnan(result.f0)]
+    voiced_ratio = f0_valid.size / max(1, result.f0.size)
+    raw_f0_valid = result.raw_f0[~np.isnan(result.raw_f0)]
+    raw_voiced_ratio = raw_f0_valid.size / max(1, result.raw_f0.size)
+
+    summary: dict[str, float | int | None] = {
+        "sample_rate": result.sr,
+        "duration_s": result.duration,
+        "frames_total": int(result.f0.size),
+        "voiced_ratio": float(voiced_ratio),
+        "raw_voiced_ratio": float(raw_voiced_ratio),
+        "rms_threshold_db": result.rms_db_threshold,
+        "rms_percentile": result.rms_db_percentile,
+        "rms_effective_db": result.rms_db_effective_threshold,
+        "min_voicing_prob_mean": result.min_voicing_prob_mean,
+        "voicing_prob_threshold": result.voicing_prob_threshold
+        if result.voiced_prob is not None
+        else None,
+        "silence_top_db": result.silence_top_db,
+        "max_gap_frames": result.max_gap_frames,
+        "min_voiced_frames": result.min_voiced_frames,
+    }
+
+    if raw_f0_valid.size:
+        summary.update(
+            {
+                "raw_f0_min_hz": float(raw_f0_valid.min()),
+                "raw_f0_max_hz": float(raw_f0_valid.max()),
+            }
+        )
+    else:
+        summary.update({"raw_f0_min_hz": None, "raw_f0_max_hz": None})
+
+    if result.voiced_prob is not None:
+        summary.update(
+            {
+                "voicing_prob_min": float(np.nanmin(result.voiced_prob)),
+                "voicing_prob_mean": float(np.nanmean(result.voiced_prob)),
+                "voicing_prob_max": float(np.nanmax(result.voiced_prob)),
+            }
+        )
+    else:
+        summary.update(
+            {
+                "voicing_prob_min": None,
+                "voicing_prob_mean": None,
+                "voicing_prob_max": None,
+            }
+        )
+
+    if f0_valid.size:
+        p10, p90 = np.percentile(f0_valid, [10, 90])
+        summary.update(
+            {
+                "f0_mean_hz": float(f0_valid.mean()),
+                "f0_median_hz": float(np.median(f0_valid)),
+                "f0_min_hz": float(f0_valid.min()),
+                "f0_max_hz": float(f0_valid.max()),
+                "f0_p10_hz": float(p10),
+                "f0_p90_hz": float(p90),
+            }
+        )
+    else:
+        summary.update(
+            {
+                "f0_mean_hz": None,
+                "f0_median_hz": None,
+                "f0_min_hz": None,
+                "f0_max_hz": None,
+                "f0_p10_hz": None,
+                "f0_p90_hz": None,
+            }
+        )
+
+    summary = {key: _to_serializable(value) for key, value in summary.items()}
+    return summary
+
+
+def save_summary(
+    summary: dict[str, float | int | None],
+    output_path: pathlib.Path | None,
+    *,
+    ndjson_path: pathlib.Path | None = None,
+) -> None:
+    """Write summary metrics to JSON or append to NDJSON."""
+
+    if ndjson_path is not None:
+        with ndjson_path.open("a", encoding="utf-8") as handle:
+            json.dump(summary, handle, separators=(",", ":"))
+            handle.write("\n")
+        return
+
+    if output_path is None:
+        raise ValueError("output_path is required when ndjson_path is None")
+    with output_path.open("w", encoding="utf-8") as handle:
+        json.dump(summary, handle, separators=(",", ":"))
+
+
 # -------- Entrypoint -------------------------------------------------------
 
-def process_file(filename: str = DEFAULT_FILENAME) -> pathlib.Path:
+def process_file(
+    filename: str = DEFAULT_FILENAME,
+    *,
+    plot: bool = True,
+    ndjson_path: pathlib.Path | None = None,
+) -> pathlib.Path:
     """End-to-end processing for a single file; returns plot path."""
 
     audio_path = DATA_ROOT / filename
@@ -350,8 +471,18 @@ def process_file(filename: str = DEFAULT_FILENAME) -> pathlib.Path:
     print_summary(result)
 
     output_path = OUTPUT_DIR / f"pitch_{audio_path.stem}.png"
-    plot_features(result, output_path)
-    print(f"\nSaved visualization to: {output_path}")
+    if plot:
+        plot_features(result, output_path)
+        print(f"\nSaved visualization to: {output_path}")
+
+    summary = summary_dict(result)
+    if ndjson_path is None:
+        summary_path = OUTPUT_DIR / f"pitch_{audio_path.stem}_summary.json"
+        save_summary(summary, summary_path)
+        print(f"Saved summary to: {summary_path}")
+    else:
+        save_summary(summary, None, ndjson_path=ndjson_path)
+        print(f"Appended summary to: {ndjson_path}")
     return output_path
 
 
