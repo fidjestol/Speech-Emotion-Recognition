@@ -1,7 +1,7 @@
-"""MFCC feature inspection utility for the Common Voice sample.
+"""MFCC feature inspection utility for the MELD train sample.
 
 Run this module directly to process
-`datasets/cv-corpus-24.0-2025-12-05/nb-NO/clips/common_voice_nb-NO_42466889.mp3`
+`datasets/MELD/train/dia0_utt0.flac`
 and display both terminal stats and a saved visualization.
 
 Why this exists
@@ -14,6 +14,7 @@ explanations so future contributors can reason about each step.
 
 from __future__ import annotations
 
+import argparse
 import pathlib
 from dataclasses import dataclass
 
@@ -29,8 +30,9 @@ matplotlib.use("Agg")
 
 # -------- Configuration ----------------------------------------------------
 
-DATA_ROOT = pathlib.Path("datasets/cv-corpus-24.0-2025-12-05/nb-NO/clips")
-DEFAULT_FILENAME = "common_voice_nb-NO_42466889.mp3"
+DATA_ROOT = pathlib.Path("datasets/MELD/train")
+DEFAULT_FILENAME: str | None = None
+AUDIO_EXTENSIONS = {".flac", ".wav", ".mp3", ".m4a", ".ogg"}
 OUTPUT_DIR = pathlib.Path("outputs")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -113,7 +115,11 @@ def print_summary(result: MFCCResult) -> None:
         print(f"  ΔC{idx:02d}: {coeff:.3f}")
 
 
-def plot_features(result: MFCCResult, output_path: pathlib.Path) -> None:
+def plot_features(
+    result: MFCCResult,
+    output_path: pathlib.Path,
+    title: str,
+) -> None:
     """Create a two-panel figure: waveform + MFCC heatmap.
 
     Why: Visual inspection helps spot clipping, silence, or unusual spectral
@@ -140,29 +146,64 @@ def plot_features(result: MFCCResult, output_path: pathlib.Path) -> None:
     axes[1].set(title="MFCCs", ylabel="Coefficient index")
     fig.colorbar(img, ax=axes[1], format="%.1f")
 
-    fig.suptitle("MFCC inspection: common_voice_nb-NO_42466889", fontsize=12)
+    fig.suptitle(title, fontsize=12)
     fig.savefig(output_path, dpi=200)
     plt.close(fig)
 
 
 # -------- Entrypoint -------------------------------------------------------
 
-def process_file(filename: str = DEFAULT_FILENAME) -> pathlib.Path:
+def find_first_audio_file(data_root: pathlib.Path) -> pathlib.Path:
+    """Return the lexicographically first audio file in a directory."""
+
+    candidates = [
+        path
+        for path in data_root.iterdir()
+        if path.is_file() and path.suffix.lower() in AUDIO_EXTENSIONS
+    ]
+    if not candidates:
+        raise FileNotFoundError(f"No audio files found in {data_root}")
+    return sorted(candidates, key=lambda path: path.name)[0]
+
+
+def process_file(
+    filename: str | None = DEFAULT_FILENAME,
+    data_root: pathlib.Path = DATA_ROOT,
+) -> pathlib.Path:
     """End-to-end processing for a single file; returns plot path."""
 
-    audio_path = DATA_ROOT / filename
-    if not audio_path.exists():
-        raise FileNotFoundError(audio_path)
+    if filename:
+        audio_path = data_root / filename
+        if not audio_path.exists():
+            raise FileNotFoundError(audio_path)
+    else:
+        audio_path = find_first_audio_file(data_root)
 
     audio, sr = load_audio(audio_path)
     result = compute_mfcc(audio, sr)
+    print(f"Source file: {audio_path}")
     print_summary(result)
 
     output_path = OUTPUT_DIR / f"mfcc_{audio_path.stem}.png"
-    plot_features(result, output_path)
+    title = f"MFCC inspection: {audio_path.stem}"
+    plot_features(result, output_path, title)
     print(f"\nSaved visualization to: {output_path}")
     return output_path
 
 
 if __name__ == "__main__":
-    process_file()
+    parser = argparse.ArgumentParser(description="Inspect MFCCs for a single audio file.")
+    parser.add_argument(
+        "--data-root",
+        type=pathlib.Path,
+        default=DATA_ROOT,
+        help="Directory containing audio files.",
+    )
+    parser.add_argument(
+        "--filename",
+        type=str,
+        default=DEFAULT_FILENAME,
+        help="Audio filename within data-root. If omitted, picks first audio file.",
+    )
+    args = parser.parse_args()
+    process_file(filename=args.filename, data_root=args.data_root)
