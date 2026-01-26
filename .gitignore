@@ -28,6 +28,7 @@ outputs/
 
 # Large datasets (keep metadata TSVs, ignore audio clips)
 datasets/**/clips/
+datasets/IEMOCAP/**/*.arrow
 
 # Local tool/version files
 .python-version
