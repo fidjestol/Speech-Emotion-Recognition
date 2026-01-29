@@ -28,7 +28,9 @@ outputs/
 
 # Large datasets (keep metadata TSVs, ignore audio clips)
 datasets/**/clips/
-datasets/IEMOCAP/**/*.arrow
+datasets/IEMOCAP/**
+!datasets/IEMOCAP/
+!datasets/IEMOCAP/iemocap_full_dataset.csv
 datasets/IEMOCAP_light/
 datasets/MELD/
 # Local tool/version files
