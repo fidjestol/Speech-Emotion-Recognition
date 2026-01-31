@@ -36,3 +36,4 @@ datasets/MELD/
 # Local tool/version files
 .python-version
 feature_extraction/extracted_features/
+extracted_features/
