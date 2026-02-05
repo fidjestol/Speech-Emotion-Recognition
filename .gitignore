@@ -25,6 +25,9 @@ dist/
 
 # Project outputs & caches
 outputs/
+*.pdf
+*.html
+*.ps1
 
 # Large datasets (keep metadata TSVs, ignore audio clips)
 datasets/**/clips/

@@ -19,4 +19,11 @@ dependencies = [
     "datasets[audio]>=4.5.0",
     "huggingface-hub>=0.36.0",
     "pandas>=2.3.3",
+    "nbconvert[webpdf]>=7.17.0",
+]
+
+[dependency-groups]
+dev = [
+    "comm>=0.2.3",
+    "ipykernel>=7.1.0",
 ]
