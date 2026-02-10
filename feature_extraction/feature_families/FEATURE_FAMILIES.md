@@ -10,3 +10,9 @@ Feature family notebooks
 - ssl_embeddings.ipynb: HuBERT/wav2vec2 embeddings with pooled mean/std and caching.
 - tonality.ipynb: Chroma and tonnetz summaries over time.
 - voice_quality.ipynb: HNR via parselmouth with HPSS fallback proxy.
+
+Batch extraction (Python modules)
+
+- Every `*.py` family module now includes `extract_batch(...)`.
+- `extract_batch(...)` runs on multiple threads only when available (and enabled).
+- Use `max_workers` to cap thread count for your host.

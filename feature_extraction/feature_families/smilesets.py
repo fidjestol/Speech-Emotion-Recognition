@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from utils.threading import threaded_map
+
 _SMILE_CACHE: dict[str, Any] = {}
 
 
@@ -60,3 +62,23 @@ def extract(
     for name, value in features.iloc[0].items():
         flat[f"smile_{name}"] = float(value)
     return flat
+
+
+def extract_batch(
+    audio_paths: list[str | Path],
+    *,
+    max_workers: int | None = None,
+    use_threads_if_available: bool = True,
+    feature_set: str = "eGeMAPSv02",
+) -> list[dict[str, float]]:
+    """Extract openSMILE features for many files."""
+
+    def _worker(audio_path: str | Path) -> dict[str, float]:
+        return extract(audio_path, feature_set=feature_set)
+
+    return threaded_map(
+        audio_paths,
+        _worker,
+        max_workers=max_workers,
+        use_threads_if_available=use_threads_if_available,
+    )

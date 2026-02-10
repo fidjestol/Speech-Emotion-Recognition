@@ -6,6 +6,8 @@ from typing import Any
 
 import numpy as np
 
+from utils.threading import threaded_map
+
 _MODEL_CACHE: dict[str, tuple[Any, Any]] = {}
 
 
@@ -114,3 +116,34 @@ def extract(
         features["ssl_std"] = std_vec
 
     return features
+
+
+def extract_batch(
+    items: list[tuple[np.ndarray, int]],
+    *,
+    max_workers: int | None = None,
+    use_threads_if_available: bool = True,
+    model_name: str = "facebook/hubert-base-ls960",
+    device: str | None = None,
+    target_sr: int = 16000,
+    pool: tuple[str, ...] = ("mean", "std"),
+) -> list[dict[str, np.ndarray]]:
+    """Extract pooled SSL embeddings for many utterances."""
+
+    def _worker(item: tuple[np.ndarray, int]) -> dict[str, np.ndarray]:
+        audio, sr = item
+        return extract(
+            audio,
+            sr,
+            model_name=model_name,
+            device=device,
+            target_sr=target_sr,
+            pool=pool,
+        )
+
+    return threaded_map(
+        items,
+        _worker,
+        max_workers=max_workers,
+        use_threads_if_available=use_threads_if_available,
+    )

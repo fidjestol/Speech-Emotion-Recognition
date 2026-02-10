@@ -21,6 +21,8 @@ import math
 import librosa
 import numpy as np
 
+from utils.threading import threaded_map
+
 
 
 # -------- Configuration ----------------------------------------------------
@@ -289,6 +291,67 @@ def save_summary(
         raise ValueError("output_path is required when ndjson_path is None")
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, separators=(",", ":"))
+
+
+def extract(
+    audio: np.ndarray,
+    sr: int,
+    *,
+    frame_length: int = 2048,
+    hop_length: int = 256,
+    rms_db_threshold: float = -50.0,
+    rms_db_percentile: float | None = 10.0,
+    silence_top_db: float = 40.0,
+    min_voiced_frames: int = 3,
+) -> dict[str, float | int | None]:
+    """Extract pooled energy features from audio."""
+
+    result = compute_energy(
+        audio,
+        sr,
+        frame_length=frame_length,
+        hop_length=hop_length,
+        rms_db_threshold=rms_db_threshold,
+        rms_db_percentile=rms_db_percentile,
+        silence_top_db=silence_top_db,
+        min_voiced_frames=min_voiced_frames,
+    )
+    return summary_dict(result)
+
+
+def extract_batch(
+    items: list[tuple[np.ndarray, int]],
+    *,
+    max_workers: int | None = None,
+    use_threads_if_available: bool = True,
+    frame_length: int = 2048,
+    hop_length: int = 256,
+    rms_db_threshold: float = -50.0,
+    rms_db_percentile: float | None = 10.0,
+    silence_top_db: float = 40.0,
+    min_voiced_frames: int = 3,
+) -> list[dict[str, float | int | None]]:
+    """Extract energy features for many utterances."""
+
+    def _worker(item: tuple[np.ndarray, int]) -> dict[str, float | int | None]:
+        audio, sr = item
+        return extract(
+            audio,
+            sr,
+            frame_length=frame_length,
+            hop_length=hop_length,
+            rms_db_threshold=rms_db_threshold,
+            rms_db_percentile=rms_db_percentile,
+            silence_top_db=silence_top_db,
+            min_voiced_frames=min_voiced_frames,
+        )
+
+    return threaded_map(
+        items,
+        _worker,
+        max_workers=max_workers,
+        use_threads_if_available=use_threads_if_available,
+    )
 
 
 # -------- Entrypoint -------------------------------------------------------
