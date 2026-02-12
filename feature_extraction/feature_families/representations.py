@@ -21,6 +21,8 @@ from dataclasses import dataclass
 import librosa
 import numpy as np
 
+from utils.threading import threaded_map
+
 
 
 # -------- Configuration ----------------------------------------------------
@@ -208,6 +210,63 @@ def save_summary(
         raise ValueError("output_path is required when ndjson_path is None")
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, separators=(",", ":"))
+
+
+def extract(
+    audio: np.ndarray,
+    sr: int,
+    *,
+    n_fft: int = 1024,
+    hop_length: int = 256,
+    n_mels: int = 64,
+    fmin: int = 50,
+    fmax: int | None = None,
+) -> dict[str, float | int | None]:
+    """Extract pooled representation features from audio."""
+
+    result = compute_log_mel(
+        audio,
+        sr,
+        n_fft=n_fft,
+        hop_length=hop_length,
+        n_mels=n_mels,
+        fmin=fmin,
+        fmax=fmax,
+    )
+    return summary_dict(result)
+
+
+def extract_batch(
+    items: list[tuple[np.ndarray, int]],
+    *,
+    max_workers: int | None = None,
+    use_threads_if_available: bool = True,
+    n_fft: int = 1024,
+    hop_length: int = 256,
+    n_mels: int = 64,
+    fmin: int = 50,
+    fmax: int | None = None,
+) -> list[dict[str, float | int | None]]:
+    """Extract representation features for many utterances."""
+
+    def _worker(item: tuple[np.ndarray, int]) -> dict[str, float | int | None]:
+        audio, sr = item
+        return extract(
+            audio,
+            sr,
+            n_fft=n_fft,
+            hop_length=hop_length,
+            n_mels=n_mels,
+            fmin=fmin,
+            fmax=fmax,
+        )
+
+    return threaded_map(
+        items,
+        _worker,
+        max_workers=max_workers,
+        use_threads_if_available=use_threads_if_available,
+    )
 
 
 # -------- Entrypoint -------------------------------------------------------

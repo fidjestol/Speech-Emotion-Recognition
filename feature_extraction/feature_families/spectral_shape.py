@@ -22,6 +22,7 @@ import librosa
 import numpy as np
 
 from utils.stats import summarize
+from utils.threading import threaded_map
 
 
 
@@ -149,6 +150,35 @@ def extract(
         features.update(summarize(band, f"spec_contrast_b{idx}", stats))
 
     return features
+
+
+def extract_batch(
+    items: list[tuple[np.ndarray, int]],
+    *,
+    max_workers: int | None = None,
+    use_threads_if_available: bool = True,
+    frame_length: int = 2048,
+    hop_length: int = 512,
+    stats: tuple[str, ...] = ("mean", "std", "p10", "p50", "p90"),
+) -> list[dict[str, float]]:
+    """Extract spectral-shape features for many utterances."""
+
+    def _worker(item: tuple[np.ndarray, int]) -> dict[str, float]:
+        audio, sr = item
+        return extract(
+            audio,
+            sr,
+            frame_length=frame_length,
+            hop_length=hop_length,
+            stats=stats,
+        )
+
+    return threaded_map(
+        items,
+        _worker,
+        max_workers=max_workers,
+        use_threads_if_available=use_threads_if_available,
+    )
 
 
 # -------- Reporting and visualisation -------------------------------------

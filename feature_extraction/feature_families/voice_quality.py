@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from utils.threading import threaded_map
+
 
 def _hnr_from_parselmouth(
     audio: np.ndarray,
@@ -65,3 +67,25 @@ def extract(
 
     hnr_proxy = _hnr_proxy_from_hpss(audio)
     return {"vq_hnr_proxy_db": float(hnr_proxy)}
+
+
+def extract_batch(
+    items: list[tuple[np.ndarray, int]],
+    *,
+    max_workers: int | None = None,
+    use_threads_if_available: bool = True,
+    fmin: float = 60.0,
+    fmax: float = 400.0,
+) -> list[dict[str, float]]:
+    """Extract voice-quality features for many utterances."""
+
+    def _worker(item: tuple[np.ndarray, int]) -> dict[str, float]:
+        audio, sr = item
+        return extract(audio, sr, fmin=fmin, fmax=fmax)
+
+    return threaded_map(
+        items,
+        _worker,
+        max_workers=max_workers,
+        use_threads_if_available=use_threads_if_available,
+    )

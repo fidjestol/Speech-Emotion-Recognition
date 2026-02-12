@@ -21,6 +21,8 @@ from dataclasses import dataclass
 import librosa
 import numpy as np
 
+from utils.threading import threaded_map
+
 
 
 # -------- Configuration ----------------------------------------------------
@@ -450,6 +452,87 @@ def save_summary(
         raise ValueError("output_path is required when ndjson_path is None")
     with output_path.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, separators=(",", ":"))
+
+
+def extract(
+    audio: np.ndarray,
+    sr: int,
+    *,
+    fmin: float = 50.0,
+    fmax: float = 400.0,
+    frame_length: int = 4096,
+    hop_length: int = 512,
+    rms_db_threshold: float = -55.0,
+    rms_db_percentile: float | None = 15.0,
+    voicing_prob_threshold: float = 0.4,
+    silence_top_db: float = 50.0,
+    max_gap_frames: int = 4,
+    min_voiced_frames: int = 3,
+    min_voicing_prob_mean: float = 0.1,
+) -> dict[str, float | int | None]:
+    """Extract pooled pitch features from audio."""
+
+    result = compute_pitch(
+        audio,
+        sr,
+        fmin=fmin,
+        fmax=fmax,
+        frame_length=frame_length,
+        hop_length=hop_length,
+        rms_db_threshold=rms_db_threshold,
+        rms_db_percentile=rms_db_percentile,
+        voicing_prob_threshold=voicing_prob_threshold,
+        silence_top_db=silence_top_db,
+        max_gap_frames=max_gap_frames,
+        min_voiced_frames=min_voiced_frames,
+        min_voicing_prob_mean=min_voicing_prob_mean,
+    )
+    return summary_dict(result)
+
+
+def extract_batch(
+    items: list[tuple[np.ndarray, int]],
+    *,
+    max_workers: int | None = None,
+    use_threads_if_available: bool = True,
+    fmin: float = 50.0,
+    fmax: float = 400.0,
+    frame_length: int = 4096,
+    hop_length: int = 512,
+    rms_db_threshold: float = -55.0,
+    rms_db_percentile: float | None = 15.0,
+    voicing_prob_threshold: float = 0.4,
+    silence_top_db: float = 50.0,
+    max_gap_frames: int = 4,
+    min_voiced_frames: int = 3,
+    min_voicing_prob_mean: float = 0.1,
+) -> list[dict[str, float | int | None]]:
+    """Extract pitch features for many utterances."""
+
+    def _worker(item: tuple[np.ndarray, int]) -> dict[str, float | int | None]:
+        audio, sr = item
+        return extract(
+            audio,
+            sr,
+            fmin=fmin,
+            fmax=fmax,
+            frame_length=frame_length,
+            hop_length=hop_length,
+            rms_db_threshold=rms_db_threshold,
+            rms_db_percentile=rms_db_percentile,
+            voicing_prob_threshold=voicing_prob_threshold,
+            silence_top_db=silence_top_db,
+            max_gap_frames=max_gap_frames,
+            min_voiced_frames=min_voiced_frames,
+            min_voicing_prob_mean=min_voicing_prob_mean,
+        )
+
+    return threaded_map(
+        items,
+        _worker,
+        max_workers=max_workers,
+        use_threads_if_available=use_threads_if_available,
+    )
 
 
 # -------- Entrypoint -------------------------------------------------------
