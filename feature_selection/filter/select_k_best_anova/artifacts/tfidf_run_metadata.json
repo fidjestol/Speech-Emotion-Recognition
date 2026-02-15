@@ -1,8 +1,7 @@
 {
   "dataset_key": "tfidf",
-  "source_path": "f:\\Speech-Emotion-Recognition\\extracted_features\\text\\tfidf_features.csv",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\text\\tfidf_features.csv",
   "target_col": "emotion",
-  "rows_before_cleaning": 7532,
   "rows_used": 7532,
   "original_features": 9155,
   "selected_features": 300,

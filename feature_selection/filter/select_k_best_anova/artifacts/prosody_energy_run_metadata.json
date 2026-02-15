@@ -1,8 +1,7 @@
 {
   "dataset_key": "prosody_energy",
-  "source_path": "f:\\Speech-Emotion-Recognition\\extracted_features\\prosody_energy\\prosody_energy_features.csv",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\prosody_energy\\prosody_energy_features.csv",
   "target_col": "emotion",
-  "rows_before_cleaning": 7532,
   "rows_used": 7532,
   "original_features": 8,
   "selected_features": 8,

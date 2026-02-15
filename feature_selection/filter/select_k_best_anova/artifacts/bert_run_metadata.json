@@ -1,8 +1,7 @@
 {
   "dataset_key": "bert",
-  "source_path": "f:\\Speech-Emotion-Recognition\\extracted_features\\text\\bert_embeddings.csv",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\text\\bert_embeddings.csv",
   "target_col": "emotion",
-  "rows_before_cleaning": 7532,
   "rows_used": 7532,
   "original_features": 768,
   "selected_features": 300,

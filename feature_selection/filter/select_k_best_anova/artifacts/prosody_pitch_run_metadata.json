@@ -1,8 +1,7 @@
 {
   "dataset_key": "prosody_pitch",
-  "source_path": "f:\\Speech-Emotion-Recognition\\extracted_features\\prosody_pitch\\prosody_pitch_features.csv",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\prosody_pitch\\prosody_pitch_features.csv",
   "target_col": "emotion",
-  "rows_before_cleaning": 7532,
   "rows_used": 1312,
   "original_features": 14,
   "selected_features": 14,
