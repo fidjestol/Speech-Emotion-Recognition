@@ -1,0 +1,16 @@
+{
+  "dataset_key": "mfcc_normalized",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\mfcc\\mfcc_features_normalized.csv",
+  "target_col": "emotion",
+  "rows_used": 7532,
+  "original_features": 1150,
+  "selected_features": 300,
+  "k_config": 300,
+  "k_effective": 300,
+  "random_state": 42,
+  "test_size": 0.2,
+  "baseline_accuracy": 0.39946914399469147,
+  "baseline_f1_weighted": 0.40240905290149565,
+  "selected_accuracy": 0.38420703384207033,
+  "selected_f1_weighted": 0.3911821312984798
+}

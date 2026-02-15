@@ -18,6 +18,7 @@ coverage.xml
 .venv/
 env/
 venv/
+.venv_clean/
 
 # Build / packaging
 build/

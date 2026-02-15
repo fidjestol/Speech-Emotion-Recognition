@@ -1,0 +1,17 @@
+{
+  "dataset_key": "prosody_energy",
+  "source_path": "f:\\Speech-Emotion-Recognition\\extracted_features\\prosody_energy\\prosody_energy_features.csv",
+  "target_col": "emotion",
+  "rows_before_cleaning": 7532,
+  "rows_used": 7532,
+  "original_features": 8,
+  "selected_features": 8,
+  "k_config": 300,
+  "k_effective": 8,
+  "random_state": 42,
+  "test_size": 0.2,
+  "baseline_accuracy": 0.1838088918380889,
+  "baseline_f1_weighted": 0.1802309874926686,
+  "selected_accuracy": 0.1838088918380889,
+  "selected_f1_weighted": 0.1802309874926686
+}
