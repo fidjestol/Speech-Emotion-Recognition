@@ -4,13 +4,13 @@
   "target_col": "emotion",
   "rows_used": 7532,
   "original_features": 9155,
-  "selected_features": 300,
-  "k_config": 300,
-  "k_effective": 300,
+  "selected_features": 1000,
+  "k_config": 1000,
+  "k_effective": 1000,
   "random_state": 42,
   "test_size": 0.2,
   "baseline_accuracy": 0.49236894492368943,
   "baseline_f1_weighted": 0.4953550658666477,
-  "selected_accuracy": 0.3795620437956204,
-  "selected_f1_weighted": 0.38241426319077804
+  "selected_accuracy": 0.44392833443928337,
+  "selected_f1_weighted": 0.4475326983577398
 }
