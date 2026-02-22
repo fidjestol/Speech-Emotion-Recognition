@@ -1,16 +1,102 @@
 {
   "dataset_key": "bert",
-  "source_path": "/home/beka/Speech-Emotion-Recognition/extracted_features/text/bert_embeddings.csv",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\text\\bert_embeddings.csv",
   "target_col": "emotion",
-  "rows_used": 9887,
+  "rows_used": 7532,
   "original_features": 768,
-  "selected_features": 768,
-  "k_config": 1000,
-  "k_effective": 768,
+  "selected_features": 300,
+  "k_config": 300,
+  "k_effective": 300,
   "random_state": 42,
   "test_size": 0.2,
-  "baseline_accuracy": 0.37917087967644086,
-  "baseline_f1_weighted": 0.3707671779254768,
-  "selected_accuracy": 0.37917087967644086,
-  "selected_f1_weighted": 0.3707671779254768
+  "best_baseline_model": "random_forest",
+  "best_selected_model": "random_forest",
+  "baseline_accuracy": 0.5262110152621101,
+  "baseline_f1_weighted": 0.5191389010839556,
+  "selected_accuracy": 0.5162574651625746,
+  "selected_f1_weighted": 0.5100119761731072,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.5262110152621101,
+      "f1_weighted": 0.5191389010839556,
+      "f1_macro": 0.4067224382480627
+    },
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.4744525547445255,
+      "f1_weighted": 0.4777168798356344,
+      "f1_macro": 0.35026523650191965
+    },
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.45388188453881884,
+      "f1_weighted": 0.45505760003695256,
+      "f1_macro": 0.34407528451073943
+    }
+  ],
+  "selected_model_metrics": [
+    {
+      "stage": "selected",
+      "model": "random_forest",
+      "accuracy": 0.5162574651625746,
+      "f1_weighted": 0.5100119761731072,
+      "f1_macro": 0.4013922957698543
+    },
+    {
+      "stage": "selected",
+      "model": "linear_svc",
+      "accuracy": 0.46715328467153283,
+      "f1_weighted": 0.4695147870104188,
+      "f1_macro": 0.3693786658105578
+    },
+    {
+      "stage": "selected",
+      "model": "logreg",
+      "accuracy": 0.45852687458526875,
+      "f1_weighted": 0.4594158244108565,
+      "f1_macro": 0.3451814152676461
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.5262110152621101,
+      "f1_weighted_baseline": 0.5191389010839556,
+      "f1_macro_baseline": 0.4067224382480627,
+      "accuracy_selected": 0.5162574651625746,
+      "f1_weighted_selected": 0.5100119761731072,
+      "f1_macro_selected": 0.4013922957698543,
+      "accuracy_delta": -0.009953550099535469,
+      "f1_weighted_delta": -0.009126924910848322,
+      "f1_macro_delta": -0.0053301424782083995
+    },
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.4744525547445255,
+      "f1_weighted_baseline": 0.4777168798356344,
+      "f1_macro_baseline": 0.35026523650191965,
+      "accuracy_selected": 0.46715328467153283,
+      "f1_weighted_selected": 0.4695147870104188,
+      "f1_macro_selected": 0.3693786658105578,
+      "accuracy_delta": -0.007299270072992692,
+      "f1_weighted_delta": -0.008202092825215557,
+      "f1_macro_delta": 0.01911342930863813
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.45388188453881884,
+      "f1_weighted_baseline": 0.45505760003695256,
+      "f1_macro_baseline": 0.34407528451073943,
+      "accuracy_selected": 0.45852687458526875,
+      "f1_weighted_selected": 0.4594158244108565,
+      "f1_macro_selected": 0.3451814152676461,
+      "accuracy_delta": 0.004644990046449915,
+      "f1_weighted_delta": 0.0043582243739039295,
+      "f1_macro_delta": 0.001106130756906687
+    }
+  ]
 }
