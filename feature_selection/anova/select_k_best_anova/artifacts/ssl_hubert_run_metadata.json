@@ -1,0 +1,132 @@
+{
+  "dataset_key": "ssl_hubert",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\ssl_embeddings\\ssl_embeddings_hubert_features.csv",
+  "target_col": "emotion",
+  "rows_used": 9887,
+  "original_features": 1539,
+  "selected_features": 300,
+  "k_config": 300,
+  "k_effective": 300,
+  "random_state": 42,
+  "test_size": 0.2,
+  "best_baseline_model": "logreg",
+  "best_selected_model": "linear_svc",
+  "baseline_accuracy": 0.3710819009100101,
+  "baseline_f1_weighted": 0.36971308422928506,
+  "selected_accuracy": 0.3609706774519717,
+  "selected_f1_weighted": 0.3443230151653988,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.3710819009100101,
+      "precision_weighted": 0.37269284909750783,
+      "recall_weighted": 0.3710819009100101,
+      "f1_weighted": 0.36971308422928506,
+      "f1_macro": 0.3721017570701994
+    },
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.36501516683518703,
+      "precision_weighted": 0.37696758112440804,
+      "recall_weighted": 0.36501516683518703,
+      "f1_weighted": 0.34267682557544543,
+      "f1_macro": 0.31529634046560495
+    },
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.34277047522750254,
+      "precision_weighted": 0.3439886388527884,
+      "recall_weighted": 0.34277047522750254,
+      "f1_weighted": 0.340703054729655,
+      "f1_macro": 0.3461692878888473
+    }
+  ],
+  "selected_model_metrics": [
+    {
+      "stage": "selected",
+      "model": "linear_svc",
+      "accuracy": 0.3609706774519717,
+      "precision_weighted": 0.36144711774731614,
+      "recall_weighted": 0.3609706774519717,
+      "f1_weighted": 0.3443230151653988,
+      "f1_macro": 0.35423821123322524
+    },
+    {
+      "stage": "selected",
+      "model": "logreg",
+      "accuracy": 0.3543983822042467,
+      "precision_weighted": 0.3619966878013449,
+      "recall_weighted": 0.3543983822042467,
+      "f1_weighted": 0.3428587335184905,
+      "f1_macro": 0.3533552881394114
+    },
+    {
+      "stage": "selected",
+      "model": "random_forest",
+      "accuracy": 0.3574317492416582,
+      "precision_weighted": 0.3671607011479134,
+      "recall_weighted": 0.3574317492416582,
+      "f1_weighted": 0.3332878554861473,
+      "f1_macro": 0.3051451971444166
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.34277047522750254,
+      "precision_weighted_baseline": 0.3439886388527884,
+      "recall_weighted_baseline": 0.34277047522750254,
+      "f1_weighted_baseline": 0.340703054729655,
+      "f1_macro_baseline": 0.3461692878888473,
+      "accuracy_selected": 0.3609706774519717,
+      "precision_weighted_selected": 0.36144711774731614,
+      "recall_weighted_selected": 0.3609706774519717,
+      "f1_weighted_selected": 0.3443230151653988,
+      "f1_macro_selected": 0.35423821123322524,
+      "accuracy_delta": 0.018200202224469164,
+      "precision_weighted_delta": 0.01745847889452773,
+      "recall_weighted_delta": 0.018200202224469164,
+      "f1_weighted_delta": 0.0036199604357438075,
+      "f1_macro_delta": 0.00806892334437792
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.3710819009100101,
+      "precision_weighted_baseline": 0.37269284909750783,
+      "recall_weighted_baseline": 0.3710819009100101,
+      "f1_weighted_baseline": 0.36971308422928506,
+      "f1_macro_baseline": 0.3721017570701994,
+      "accuracy_selected": 0.3543983822042467,
+      "precision_weighted_selected": 0.3619966878013449,
+      "recall_weighted_selected": 0.3543983822042467,
+      "f1_weighted_selected": 0.3428587335184905,
+      "f1_macro_selected": 0.3533552881394114,
+      "accuracy_delta": -0.0166835187057634,
+      "precision_weighted_delta": -0.01069616129616291,
+      "recall_weighted_delta": -0.0166835187057634,
+      "f1_weighted_delta": -0.02685435071079456,
+      "f1_macro_delta": -0.018746468930787963
+    },
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.36501516683518703,
+      "precision_weighted_baseline": 0.37696758112440804,
+      "recall_weighted_baseline": 0.36501516683518703,
+      "f1_weighted_baseline": 0.34267682557544543,
+      "f1_macro_baseline": 0.31529634046560495,
+      "accuracy_selected": 0.3574317492416582,
+      "precision_weighted_selected": 0.3671607011479134,
+      "recall_weighted_selected": 0.3574317492416582,
+      "f1_weighted_selected": 0.3332878554861473,
+      "f1_macro_selected": 0.3051451971444166,
+      "accuracy_delta": -0.007583417593528818,
+      "precision_weighted_delta": -0.009806879976494653,
+      "recall_weighted_delta": -0.007583417593528818,
+      "f1_weighted_delta": -0.009388970089298121,
+      "f1_macro_delta": -0.010151143321188327
+    }
+  ]
+}
