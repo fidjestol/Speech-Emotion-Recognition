@@ -1,0 +1,119 @@
+\section{Notebook-Centric Methodology and Results}
+This section documents the major notebook workflows in the repository for reproducible inclusion in a Master's thesis on speech emotion recognition.
+\subsection{analysis/}
+\textbf{What was done.} Exploratory notebooks (\texttt{iemocap\_eda.ipynb}, \texttt{mfcc\_output\_analysis.ipynb}) were used to inspect dataset composition and initial feature behavior.
+\textbf{How it was done.} The notebooks are interactive and diagnostic; they focus on plots and sanity checks rather than a fixed train/test protocol.
+\textbf{Results.} No standardized machine-readable result artifacts are currently exported from this folder.
+\subsection{feature\_extraction/feature\_families/}
+\textbf{What was done.} Multiple feature families were extracted from audio/text, including MFCC, prosody, tonality, rhythm, SSL embeddings, BERT embeddings, and TF-IDF.
+\textbf{How it was done.} Family-specific notebooks/scripts compute per-utterance descriptors and export CSV files under \texttt{extracted\_features/}.
+\textbf{Results.} Table~\ref{tab:feature_inventory} summarizes sample size and dimensionality per family.
+\begin{table}[h]
+\centering
+\caption{Extracted feature family inventory}
+\label{tab:feature_inventory}
+\begin{tabular}{lrr}
+\hline
+Feature family & Samples & Feature count \\
+\hline
+BERT text embeddings & 7532 & 768 \\
+MFCC (normalized) & 9887 & 1150 \\
+MFCC (raw) & 9887 & 1150 \\
+Prosody energy & 7532 & 8 \\
+Prosody pitch & 7532 & 14 \\
+Representations & 7532 & 136 \\
+Rhythm/pauses & 7532 & 10 \\
+SSL HuBERT & 9887 & 1539 \\
+SSL wav2vec2 & 9887 & 1539 \\
+TF-IDF text & 4779 & 10480 \\
+Tonality & 7532 & 91 \\
+\hline
+\end{tabular}
+\end{table}
+\subsection{feature\_extraction/pipelines/}
+\textbf{What was done.} Pipeline notebooks aggregate per-family features into combined datasets for downstream modeling.
+\textbf{How it was done.} \texttt{all\_feature\_families\_pipeline.ipynb} and \texttt{anova\_selected\_feature\_pipeline.ipynb} orchestrate merges and dataset preparation.
+\textbf{Results.} Current exported combined tables are:
+\begin{table}[h]
+\centering
+\caption{Current pipeline outputs in extracted\_features/combined}
+\begin{tabular}{lrr}
+\hline
+Output table & Rows & Columns \\
+\hline
+all\_families\_features & 7532 & 14034 \\
+\hline
+\end{tabular}
+\end{table}
+\subsection{feature\_selection/anova/select\_k\_best\_anova/}
+\textbf{What was done.} ANOVA filter-based feature selection was evaluated per feature family.
+\textbf{How it was done.} Each notebook runs baseline and post-selection training with class-imbalance-aware models (Logistic Regression, Linear SVC, Random Forest), then computes metric deltas.
+\textbf{Results.} Table~\ref{tab:anova_results} reports weighted F1 before/after selection.
+\begin{table}[h]
+\centering
+\caption{ANOVA select-$k$ summary from run metadata}
+\label{tab:anova_results}
+\begin{tabular}{lrrrrr}
+\hline
+Family & Orig. feat. & Sel. feat. & Base F1$_w$ & Sel. F1$_w$ & $\Delta$F1$_w$ \\
+\hline
+bert & 768 & 300 & 0.5191 & 0.5100 & -0.0091 \\
+mfcc\_normalized & 1150 & 300 & 0.4024 & 0.3912 & -0.0112 \\
+mfcc\_raw & 1150 & 1150 & 0.3726 & 0.3726 & +0.0000 \\
+prosody\_energy & 8 & 8 & 0.2236 & 0.2236 & +0.0000 \\
+prosody\_pitch & 14 & 14 & 0.2439 & 0.2439 & +0.0000 \\
+ssl\_hubert & 1539 & 300 & 0.3697 & 0.3443 & -0.0254 \\
+ssl\_wav2vec & 1539 & 300 & 0.3681 & 0.3467 & -0.0214 \\
+tfidf & 10480 & 1000 & 0.4242 & 0.3830 & -0.0412 \\
+\hline
+\end{tabular}
+\end{table}
+\subsection{feature\_selection/anova/elbow\_curves\_anova/}
+\textbf{What was done.} Elbow-curve sweeps were used to estimate practical and best-performing values of $k$ for ANOVA-ranked features.
+\textbf{How it was done.} For each family, notebooks evaluate multiple top-$k$ prefixes of ranked features and save summary CSV files (elbow $k$, best $k$, and scores).
+\textbf{Results.} Table~\ref{tab:elbow_results} reports exported elbow summaries.
+\begin{table}[h]
+\centering
+\caption{Elbow-curve summary (accuracy and weighted F1)}
+\label{tab:elbow_results}
+\begin{tabular}{llrrrr}
+\hline
+Family & Metric & Elbow $k$ & Best $k$ & Elbow score & Best score \\
+\hline
+bert & accuracy & 90 & 686 & 0.3261 & 0.3857 \\
+bert & F1$_w$ & 90 & 686 & 0.3144 & 0.3771 \\
+mfcc\_raw & accuracy & 220 & 848 & 0.3342 & 0.3504 \\
+mfcc\_raw & F1$_w$ & 240 & 848 & 0.3136 & 0.3416 \\
+prosody\_energy & accuracy & 5 & 7 & 0.2396 & 0.2492 \\
+prosody\_energy & F1$_w$ & 5 & 7 & 0.2137 & 0.2230 \\
+ssl\_hubert & accuracy & 70 & 280 & 0.3519 & 0.3660 \\
+ssl\_hubert & F1$_w$ & 60 & 280 & 0.3246 & 0.3542 \\
+ssl\_wav2vec & accuracy & 110 & 300 & 0.3322 & 0.3569 \\
+ssl\_wav2vec & F1$_w$ & 110 & 300 & 0.3138 & 0.3461 \\
+tfidf & accuracy & 170 & 814 & 0.2218 & 0.2615 \\
+tfidf & F1$_w$ & 170 & 814 & 0.1369 & 0.2409 \\
+\hline
+\end{tabular}
+\end{table}
+\noindent Note: current elbow artifacts are split across both \texttt{feature\_selection/anova/...} and \texttt{feature\_selection/filter/...} directories.
+\subsection{feature\_test/}
+\textbf{What was done.} Additional notebooks test classical ML and DNN baselines on selected feature sets.
+\textbf{How it was done.} Experiments include tree-based learners, linear/logistic models, SVM variants, and an MLP baseline.
+\textbf{Results.} Metrics are currently stored in notebook outputs (not standardized CSV/JSON). Table~\ref{tab:feature_test_outputs} reports coarse maxima extracted from saved outputs.
+\begin{table}[h]
+\centering
+\caption{Coarse maxima extracted from saved feature\_test notebook outputs}
+\label{tab:feature_test_outputs}
+\begin{tabular}{lrr}
+\hline
+Notebook & Max reported accuracy & Max reported F1 \\
+\hline
+feature\_test/classical\_feature\_system/classical\_feature\_ensemble.ipynb & n/a & 0.4304 \\
+feature\_test/DNN/mfcc\_dnn\_test.ipynb & 0.4575 & 0.4000 \\
+feature\_test/TreeBased/mfcc\_boosting\_test.ipynb & 0.4706 & 0.5500 \\
+feature\_test/TreeBased/mfcc\_RF\_test.ipynb & 0.5698 & 0.5500 \\
+feature\_test/TreeBased/text\_tfidf\_test.ipynb & 0.5234 & 0.5700 \\
+\hline
+\end{tabular}
+\end{table}
+\noindent For thesis-grade comparability, feature\_test notebooks should be extended to export structured results with fixed data splits and confidence intervals.
