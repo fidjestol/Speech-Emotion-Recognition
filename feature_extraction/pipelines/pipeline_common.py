@@ -83,8 +83,9 @@ def _pushd(target_dir: Path):
 
 def load_base_metadata(
     repo_root: Path,
-    include_xxx: bool = False,
+    include_xxx: bool = True,
     require_agreement: bool = True,
+    excluded_emotions: tuple[str, ...] = ("sur", "fea", "oth", "dis"),
 ) -> pd.DataFrame:
     meta_csv = repo_root / "datasets" / "IEMOCAP" / "iemocap_full_dataset.csv"
     if not meta_csv.exists():
@@ -96,10 +97,18 @@ def load_base_metadata(
     df["gender"] = df["gender"].astype(str).str.strip().str.upper()
     df[KEY_COLUMN] = normalize_path_series(df[KEY_COLUMN])
 
+    if excluded_emotions:
+        excluded = {str(label).strip().lower() for label in excluded_emotions}
+        df = df[~df["emotion"].isin(excluded)].copy()
+
     if not include_xxx:
         df = df[df["emotion"] != "xxx"].copy()
     if require_agreement:
-        df = df[df["agreement"] > 0].copy()
+        # Keep unlabeled rows when xxx is included; enforce agreement on labeled rows.
+        if include_xxx:
+            df = df[(df["emotion"] == "xxx") | (df["agreement"] > 0)].copy()
+        else:
+            df = df[df["agreement"] > 0].copy()
 
     return df.reset_index(drop=True)
 
