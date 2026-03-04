@@ -1,0 +1,132 @@
+{
+  "dataset_key": "prosody_pitch",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\prosody_pitch\\prosody_pitch_features.csv",
+  "target_col": "emotion",
+  "rows_used": 1735,
+  "original_features": 14,
+  "pca_components_config": 14,
+  "pca_components_effective": 14,
+  "pca_explained_variance_total": 0.9999999999999999,
+  "random_state": 42,
+  "test_size": 0.2,
+  "best_baseline_model": "random_forest",
+  "best_pca_model": "random_forest",
+  "baseline_accuracy": 0.27089337175792505,
+  "baseline_f1_weighted": 0.25807406460145066,
+  "pca_accuracy": 0.27953890489913547,
+  "pca_f1_weighted": 0.2529024265083314,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.27089337175792505,
+      "precision_weighted": 0.2627844577667375,
+      "recall_weighted": 0.27089337175792505,
+      "f1_weighted": 0.25807406460145066,
+      "f1_macro": 0.229275397016182
+    },
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.207492795389049,
+      "precision_weighted": 0.23432465019588097,
+      "recall_weighted": 0.207492795389049,
+      "f1_weighted": 0.1885508654101815,
+      "f1_macro": 0.1956440260698282
+    },
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.2017291066282421,
+      "precision_weighted": 0.21671080637659199,
+      "recall_weighted": 0.2017291066282421,
+      "f1_weighted": 0.18757642704301414,
+      "f1_macro": 0.18706577458749576
+    }
+  ],
+  "pca_model_metrics": [
+    {
+      "stage": "pca",
+      "model": "random_forest",
+      "accuracy": 0.27953890489913547,
+      "precision_weighted": 0.26005498649571734,
+      "recall_weighted": 0.27953890489913547,
+      "f1_weighted": 0.2529024265083314,
+      "f1_macro": 0.20917305820502133
+    },
+    {
+      "stage": "pca",
+      "model": "logreg",
+      "accuracy": 0.2017291066282421,
+      "precision_weighted": 0.22293064410414107,
+      "recall_weighted": 0.2017291066282421,
+      "f1_weighted": 0.18317618251985,
+      "f1_macro": 0.19002094347764495
+    },
+    {
+      "stage": "pca",
+      "model": "linear_svc",
+      "accuracy": 0.19596541786743515,
+      "precision_weighted": 0.20953432464160324,
+      "recall_weighted": 0.19596541786743515,
+      "f1_weighted": 0.17773650313048847,
+      "f1_macro": 0.18466425790719093
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.27089337175792505,
+      "precision_weighted_baseline": 0.2627844577667375,
+      "recall_weighted_baseline": 0.27089337175792505,
+      "f1_weighted_baseline": 0.25807406460145066,
+      "f1_macro_baseline": 0.229275397016182,
+      "accuracy_selected": 0.27953890489913547,
+      "precision_weighted_selected": 0.26005498649571734,
+      "recall_weighted_selected": 0.27953890489913547,
+      "f1_weighted_selected": 0.2529024265083314,
+      "f1_macro_selected": 0.20917305820502133,
+      "accuracy_delta": 0.008645533141210415,
+      "precision_weighted_delta": -0.002729471271020134,
+      "recall_weighted_delta": 0.008645533141210415,
+      "f1_weighted_delta": -0.0051716380931192685,
+      "f1_macro_delta": -0.020102338811160664
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.207492795389049,
+      "precision_weighted_baseline": 0.23432465019588097,
+      "recall_weighted_baseline": 0.207492795389049,
+      "f1_weighted_baseline": 0.1885508654101815,
+      "f1_macro_baseline": 0.1956440260698282,
+      "accuracy_selected": 0.2017291066282421,
+      "precision_weighted_selected": 0.22293064410414107,
+      "recall_weighted_selected": 0.2017291066282421,
+      "f1_weighted_selected": 0.18317618251985,
+      "f1_macro_selected": 0.19002094347764495,
+      "accuracy_delta": -0.0057636887608069065,
+      "precision_weighted_delta": -0.011394006091739906,
+      "recall_weighted_delta": -0.0057636887608069065,
+      "f1_weighted_delta": -0.0053746828903315225,
+      "f1_macro_delta": -0.005623082592183248
+    },
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.2017291066282421,
+      "precision_weighted_baseline": 0.21671080637659199,
+      "recall_weighted_baseline": 0.2017291066282421,
+      "f1_weighted_baseline": 0.18757642704301414,
+      "f1_macro_baseline": 0.18706577458749576,
+      "accuracy_selected": 0.19596541786743515,
+      "precision_weighted_selected": 0.20953432464160324,
+      "recall_weighted_selected": 0.19596541786743515,
+      "f1_weighted_selected": 0.17773650313048847,
+      "f1_macro_selected": 0.18466425790719093,
+      "accuracy_delta": -0.005763688760806934,
+      "precision_weighted_delta": -0.007176481734988749,
+      "recall_weighted_delta": -0.005763688760806934,
+      "f1_weighted_delta": -0.009839923912525667,
+      "f1_macro_delta": -0.0024015166803048327
+    }
+  ]
+}

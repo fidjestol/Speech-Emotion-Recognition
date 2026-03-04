@@ -1,0 +1,132 @@
+{
+  "dataset_key": "bert",
+  "source_path": "F:\\Speech-Emotion-Recognition\\extracted_features\\text\\bert_embeddings.csv",
+  "target_col": "emotion",
+  "rows_used": 9887,
+  "original_features": 768,
+  "pca_components_config": 300,
+  "pca_components_effective": 300,
+  "pca_explained_variance_total": 0.9436025267065589,
+  "random_state": 42,
+  "test_size": 0.2,
+  "best_baseline_model": "random_forest",
+  "best_pca_model": "random_forest",
+  "baseline_accuracy": 0.4196157735085945,
+  "baseline_f1_weighted": 0.41452277204086646,
+  "pca_accuracy": 0.3953488372093023,
+  "pca_f1_weighted": 0.3835875257561254,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.4196157735085945,
+      "precision_weighted": 0.4475718210848033,
+      "recall_weighted": 0.4196157735085945,
+      "f1_weighted": 0.41452277204086646,
+      "f1_macro": 0.39321292604633223
+    },
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.391304347826087,
+      "precision_weighted": 0.397941187824972,
+      "recall_weighted": 0.391304347826087,
+      "f1_weighted": 0.38432305149473805,
+      "f1_macro": 0.38873308043018795
+    },
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.37917087967644086,
+      "precision_weighted": 0.38928315149014137,
+      "recall_weighted": 0.37917087967644086,
+      "f1_weighted": 0.37083390506182656,
+      "f1_macro": 0.37591433974422866
+    }
+  ],
+  "pca_model_metrics": [
+    {
+      "stage": "pca",
+      "model": "random_forest",
+      "accuracy": 0.3953488372093023,
+      "precision_weighted": 0.4436159543344457,
+      "recall_weighted": 0.3953488372093023,
+      "f1_weighted": 0.3835875257561254,
+      "f1_macro": 0.3566405157568559
+    },
+    {
+      "stage": "pca",
+      "model": "linear_svc",
+      "accuracy": 0.3746208291203236,
+      "precision_weighted": 0.38607779932906855,
+      "recall_weighted": 0.3746208291203236,
+      "f1_weighted": 0.3668734347773531,
+      "f1_macro": 0.3710481025460514
+    },
+    {
+      "stage": "pca",
+      "model": "logreg",
+      "accuracy": 0.37664307381193124,
+      "precision_weighted": 0.3922411286664553,
+      "recall_weighted": 0.37664307381193124,
+      "f1_weighted": 0.36637866994009805,
+      "f1_macro": 0.3746895156991155
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.4196157735085945,
+      "precision_weighted_baseline": 0.4475718210848033,
+      "recall_weighted_baseline": 0.4196157735085945,
+      "f1_weighted_baseline": 0.41452277204086646,
+      "f1_macro_baseline": 0.39321292604633223,
+      "accuracy_selected": 0.3953488372093023,
+      "precision_weighted_selected": 0.4436159543344457,
+      "recall_weighted_selected": 0.3953488372093023,
+      "f1_weighted_selected": 0.3835875257561254,
+      "f1_macro_selected": 0.3566405157568559,
+      "accuracy_delta": -0.02426693629929222,
+      "precision_weighted_delta": -0.0039558667503576395,
+      "recall_weighted_delta": -0.02426693629929222,
+      "f1_weighted_delta": -0.030935246284741036,
+      "f1_macro_delta": -0.03657241028947633
+    },
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.391304347826087,
+      "precision_weighted_baseline": 0.397941187824972,
+      "recall_weighted_baseline": 0.391304347826087,
+      "f1_weighted_baseline": 0.38432305149473805,
+      "f1_macro_baseline": 0.38873308043018795,
+      "accuracy_selected": 0.3746208291203236,
+      "precision_weighted_selected": 0.38607779932906855,
+      "recall_weighted_selected": 0.3746208291203236,
+      "f1_weighted_selected": 0.3668734347773531,
+      "f1_macro_selected": 0.3710481025460514,
+      "accuracy_delta": -0.0166835187057634,
+      "precision_weighted_delta": -0.01186338849590346,
+      "recall_weighted_delta": -0.0166835187057634,
+      "f1_weighted_delta": -0.01744961671738493,
+      "f1_macro_delta": -0.017684977884136532
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.37917087967644086,
+      "precision_weighted_baseline": 0.38928315149014137,
+      "recall_weighted_baseline": 0.37917087967644086,
+      "f1_weighted_baseline": 0.37083390506182656,
+      "f1_macro_baseline": 0.37591433974422866,
+      "accuracy_selected": 0.37664307381193124,
+      "precision_weighted_selected": 0.3922411286664553,
+      "recall_weighted_selected": 0.37664307381193124,
+      "f1_weighted_selected": 0.36637866994009805,
+      "f1_macro_selected": 0.3746895156991155,
+      "accuracy_delta": -0.0025278058645096246,
+      "precision_weighted_delta": 0.0029579771763139084,
+      "recall_weighted_delta": -0.0025278058645096246,
+      "f1_weighted_delta": -0.004455235121728518,
+      "f1_macro_delta": -0.0012248240451131487
+    }
+  ]
+}
