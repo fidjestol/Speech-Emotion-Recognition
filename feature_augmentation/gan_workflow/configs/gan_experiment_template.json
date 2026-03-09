@@ -1,0 +1,37 @@
+{
+  "run_name": "gan_combined_anova_v1",
+  "input_train_csv": "feature_selection/anova/select_k_best_anova/artifacts/combined_X_train_selected.csv",
+  "label_column": "emotion",
+  "id_column": "path",
+  "exclude_columns": [
+    "path",
+    "session",
+    "method",
+    "gender",
+    "emotion",
+    "n_annotators",
+    "agreement"
+  ],
+  "balancing": {
+    "mode": "max",
+    "fixed_targets": {}
+  },
+  "model": {
+    "variant": "conditional_mlp_gan",
+    "latent_dim": 64,
+    "generator_hidden": [
+      256,
+      256
+    ],
+    "discriminator_hidden": [
+      256,
+      128
+    ],
+    "epochs": 300,
+    "batch_size": 128,
+    "learning_rate": 0.0002
+  },
+  "output_dir": "feature_augmentation/gan_workflow/artifacts/gan_combined_anova_v1",
+  "seed": 42
+}
+

@@ -1,0 +1,36 @@
+{
+  "train_csv": "extracted_features\\combined\\all_families_features.csv",
+  "label_col": "emotion",
+  "mode": "max",
+  "rows_total": 9887,
+  "feature_columns_total": 15352,
+  "numeric_feature_columns": 15346,
+  "class_counts": {
+    "xxx": 2507,
+    "fru": 1849,
+    "neu": 1708,
+    "ang": 1103,
+    "sad": 1084,
+    "exc": 1041,
+    "hap": 595
+  },
+  "target_counts": {
+    "xxx": 2507,
+    "fru": 2507,
+    "neu": 2507,
+    "ang": 2507,
+    "sad": 2507,
+    "exc": 2507,
+    "hap": 2507
+  },
+  "synthetic_needed": {
+    "xxx": 0,
+    "fru": 658,
+    "neu": 799,
+    "ang": 1404,
+    "sad": 1423,
+    "exc": 1466,
+    "hap": 1912
+  },
+  "synthetic_total": 7662
+}
