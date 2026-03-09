@@ -9,8 +9,5 @@
   "pitch_f0_hz_max",
   "pitch_f0_hz_median",
   "pitch_f0_hz_p10",
-  "pitch_f0_hz_p90",
-  "pitch_voicing_prob_mean",
-  "pitch_voicing_prob_min",
-  "pitch_voicing_prob_max"
+  "pitch_f0_hz_p90"
 ]
