@@ -32,6 +32,14 @@ FAMILY_SOURCES = {
     "tonality": Path("extracted_features/tonality/tonality_features.csv"),
 }
 
+# Backward/forward-compatible source aliases for families that have renamed outputs.
+FAMILY_SOURCE_ALIASES: dict[str, tuple[Path, ...]] = {
+    "ssl_embeddings": (
+        Path("extracted_features/ssl_embeddings/ssl_embeddings_wav2vec_features.csv"),
+        Path("extracted_features/ssl_embeddings/ssl_embeddings_hubert_features.csv"),
+    ),
+}
+
 FAMILY_GENERATOR_NOTEBOOKS = {
     "mfcc_raw": Path("feature_extraction/feature_families/cepstral_mfcc.ipynb"),
     "mfcc_normalized": Path("feature_extraction/feature_families/cepstral_mfcc.ipynb"),
@@ -41,7 +49,7 @@ FAMILY_GENERATOR_NOTEBOOKS = {
     "bert": Path("feature_extraction/feature_families/text_bert_embeddings.ipynb"),
     "representations": Path("feature_extraction/feature_families/representations.ipynb"),
     "rhythm_pauses": Path("feature_extraction/feature_families/rhythm_pauses.ipynb"),
-    "ssl_embeddings": Path("feature_extraction/feature_families/ssl_embeddings.ipynb"),
+    "ssl_embeddings": Path("feature_extraction/feature_families/ssl_embeddings_wav2vec.ipynb"),
     "tonality": Path("feature_extraction/feature_families/tonality.ipynb"),
 }
 
@@ -69,6 +77,21 @@ def normalize_path_series(series: pd.Series) -> pd.Series:
 
 def prefixed_name(family: str, feature_name: str) -> str:
     return f"{family}__{feature_name}"
+
+
+def _resolve_family_csv_path(repo_root: Path, family: str) -> Path:
+    """Return the first existing CSV path for a family (primary or alias)."""
+
+    primary = repo_root / FAMILY_SOURCES[family]
+    if primary.exists():
+        return primary
+
+    for alias_rel in FAMILY_SOURCE_ALIASES.get(family, ()):
+        alias = repo_root / alias_rel
+        if alias.exists():
+            return alias
+
+    return primary
 
 
 @contextmanager
@@ -122,7 +145,7 @@ def load_family_frame(
     if family not in FAMILY_SOURCES:
         raise KeyError(f"Unknown family: {family}")
 
-    csv_path = repo_root / FAMILY_SOURCES[family]
+    csv_path = _resolve_family_csv_path(repo_root, family)
     info: dict[str, Any] = {
         "family": family,
         "csv_path": str(csv_path),
@@ -201,7 +224,7 @@ def load_family_frames(
 def missing_family_sources(repo_root: Path, families: list[str]) -> list[str]:
     missing: list[str] = []
     for family in families:
-        csv_path = repo_root / FAMILY_SOURCES[family]
+        csv_path = _resolve_family_csv_path(repo_root, family)
         if not csv_path.exists():
             missing.append(family)
     return missing
