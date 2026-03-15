@@ -1,0 +1,57 @@
+{
+  "model_id": "firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3",
+  "task": "iemocap_whisper_ser_evaluation",
+  "label_policy": {
+    "iemocap_to_eval_label": {
+      "ang": "ang",
+      "fea": "fea",
+      "hap": "hap",
+      "neu": "neu",
+      "sad": "sad",
+      "sur": "sur"
+    },
+    "model_to_iemocap_label": {
+      "angry": "ang",
+      "disgust": "dis",
+      "fearful": "fea",
+      "happy": "hap",
+      "neutral": "neu",
+      "sad": "sad",
+      "surprised": "sur"
+    },
+    "target_labels": [
+      "ang",
+      "fea",
+      "hap",
+      "neu",
+      "sad",
+      "sur"
+    ],
+    "note": "This notebook mirrors the feature_selection split-and-metrics workflow, using only the clean label overlaps between IEMOCAP and the upstream Whisper checkpoint. Excited, frustrated, other, xxx, and disgust are excluded."
+  },
+  "split": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "train_rows": 3709,
+    "test_rows": 928
+  },
+  "inference": {
+    "device": "cuda",
+    "batch_size": 4,
+    "max_duration": 30.0,
+    "limit_test_rows": null
+  },
+  "metrics": {
+    "accuracy": 0.27370689655172414,
+    "precision_weighted": 0.5741481960570107,
+    "recall_weighted": 0.27370689655172414,
+    "f1_weighted": 0.24822844283821327,
+    "f1_macro": 0.21484505222835915
+  },
+  "artifacts": {
+    "results_csv": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_clean_6way/results.csv",
+    "predictions_csv": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_clean_6way/test_predictions.csv",
+    "classification_report_csv": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_clean_6way/classification_report.csv",
+    "confusion_matrix_png": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_clean_6way/confusion_matrix.png"
+  }
+}

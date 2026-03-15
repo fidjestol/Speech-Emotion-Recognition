@@ -1,0 +1,54 @@
+{
+  "model_id": "firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3",
+  "task": "iemocap_whisper_ser_evaluation",
+  "label_policy": {
+    "iemocap_to_eval_label": {
+      "ang": "ang",
+      "hap": "hap",
+      "exc": "hap",
+      "neu": "neu",
+      "sad": "sad"
+    },
+    "model_to_iemocap_label": {
+      "angry": "ang",
+      "disgust": "dis",
+      "fearful": "fea",
+      "happy": "hap",
+      "neutral": "neu",
+      "sad": "sad",
+      "surprised": "sur"
+    },
+    "target_labels": [
+      "ang",
+      "hap",
+      "neu",
+      "sad"
+    ],
+    "note": "This notebook mirrors the feature_selection split-and-metrics workflow, but uses a reduced 4-way IEMOCAP label set because the upstream Whisper checkpoint does not natively model excited or frustrated."
+  },
+  "split": {
+    "test_size": 0.2,
+    "random_state": 42,
+    "train_rows": 4424,
+    "test_rows": 1107
+  },
+  "inference": {
+    "device": "cuda",
+    "batch_size": 4,
+    "max_duration": 30.0,
+    "limit_test_rows": null
+  },
+  "metrics": {
+    "accuracy": 0.2800361336946703,
+    "precision_weighted": 0.5306360284460854,
+    "recall_weighted": 0.2800361336946703,
+    "f1_weighted": 0.27987601522672484,
+    "f1_macro": 0.29011543744045487
+  },
+  "artifacts": {
+    "results_csv": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_4way/results.csv",
+    "predictions_csv": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_4way/test_predictions.csv",
+    "classification_report_csv": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_4way/classification_report.csv",
+    "confusion_matrix_png": "/mnt/f/Speech-Emotion-Recognition/whisper/evaluation/artifacts/whisper_large_v3_iemocap_4way/confusion_matrix.png"
+  }
+}
