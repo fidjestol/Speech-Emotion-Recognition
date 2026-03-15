@@ -16,6 +16,8 @@ coverage.xml
 
 # Environments
 .venv/
+.venv-idun/
+.venv-login-gpu/
 env/
 venv/
 .venv_clean/
@@ -26,6 +28,8 @@ dist/
 
 # Project outputs & caches
 outputs/
+logs/
+whisper/finetuning/artifacts/
 *.pdf
 *.html
 *.ps1

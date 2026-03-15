@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 requires-python = ">=3.10"
 name = "speech-emotion-recognition"
@@ -21,6 +25,7 @@ dependencies = [
     "pandas>=2.3.3",
     "nbconvert[webpdf]>=7.17.0",
     "protobuf>=6.33.5",
+    "tensorboard>=2.19.0",
     "transformers>=5.0.0",
     "accelerate>=1.1.0",
     "ipywidgets>=8.1.8",
@@ -42,3 +47,9 @@ explicit = true
 [tool.uv.sources]
 torch = { index = "pytorch-cu128" }
 torchaudio = { index = "pytorch-cu128" }
+
+[tool.setuptools]
+py-modules = []
+
+[tool.setuptools.packages.find]
+include = ["utils", "inspections"]

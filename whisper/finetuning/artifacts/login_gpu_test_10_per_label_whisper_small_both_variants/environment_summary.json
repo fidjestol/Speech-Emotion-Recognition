@@ -1,0 +1,15 @@
+{
+  "host": "idun-login1",
+  "cwd": "/cluster/home/bekadb/Speech-Emotion-Recognition",
+  "python_executable": "/cluster/home/bekadb/Speech-Emotion-Recognition/.venv-login-gpu/bin/python",
+  "cuda_available": true,
+  "device": "cuda",
+  "slurm_job_id": null,
+  "slurm_job_name": null,
+  "slurm_cpus_per_task": null,
+  "cuda_visible_devices": "0",
+  "cuda_device_count": 1,
+  "cuda_device_name": "Tesla P100-PCIE-16GB",
+  "sampling_rate": 16000,
+  "effective_precision": "fp32"
+}
