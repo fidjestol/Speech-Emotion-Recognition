@@ -117,3 +117,55 @@ feature\_test/TreeBased/text\_tfidf\_test.ipynb & 0.5234 & 0.5700 \\
 \end{tabular}
 \end{table}
 \noindent For thesis-grade comparability, feature\_test notebooks should be extended to export structured results with fixed data splits and confidence intervals.
+\subsection{feature\_selection/anova/select\_k\_best\_anova/ (combined feature set)}
+\textbf{What was done.} ANOVA feature selection was extended from single families to the merged feature table, enabling a direct test of whether a compact cross-family subset could preserve performance.
+\textbf{How it was done.} The notebook \texttt{k\_best\_anova\_combined.ipynb} applies the same train/test split and class-imbalance-aware evaluation strategy used in the single-family ANOVA experiments, but on the concatenated feature matrix exported by the pipeline stage.
+\textbf{Results.} Table~\ref{tab:anova_combined_results} reports the current committed result for the combined table.
+\begin{table}[h]
+\centering
+\caption{ANOVA result for the combined feature table}
+\label{tab:anova_combined_results}
+\begin{tabular}{lrrrrr}
+\hline
+Dataset & Orig. feat. & Sel. feat. & Base acc. & Sel. acc. & $\Delta$acc. \\
+\hline
+combined & 4859 & 300 & 0.4287 & 0.3787 & -0.0501 \\
+\hline
+\end{tabular}
+\end{table}
+\noindent The combined-table result suggests that aggressive filter selection can remove complementary information that is useful when heterogeneous feature families are fused.
+\subsection{feature\_selection/pca/select\_pca/}
+\textbf{What was done.} A PCA-based dimensionality-reduction workflow was added for multiple feature families, including BERT, MFCC, prosody, SSL embeddings, and TF-IDF.
+\textbf{How it was done.} Family-specific PCA notebooks compare baseline models against PCA-compressed representations using a fixed train/test split. A runner notebook (\texttt{run\_all\_pca.ipynb}) executes the full batch, and each run exports transformed train/test matrices, explained-variance summaries, PCA component definitions, and run metadata.
+\textbf{Results.} Table~\ref{tab:pca_results} summarizes the current committed PCA runs.
+\begin{table}[h]
+\centering
+\caption{PCA summary from run metadata}
+\label{tab:pca_results}
+\begin{tabular}{lrrrrrr}
+\hline
+Family & Orig. feat. & PCA feat. & Var. kept & Base F1$_w$ & PCA F1$_w$ & $\Delta$F1$_w$ \\
+\hline
+bert & 768 & 300 & 0.9436 & 0.4145 & 0.3836 & -0.0309 \\
+mfcc\_raw & 1150 & 300 & 0.9621 & 0.3726 & 0.3362 & -0.0364 \\
+prosody\_energy & 8 & 8 & 1.0000 & 0.2526 & 0.2773 & +0.0246 \\
+prosody\_pitch & 14 & 14 & 1.0000 & 0.2581 & 0.2529 & -0.0052 \\
+ssl\_hubert & 1539 & 300 & 0.9580 & 0.3697 & 0.3817 & +0.0120 \\
+ssl\_wav2vec & 1539 & 300 & 0.9427 & 0.3681 & 0.3927 & +0.0246 \\
+tfidf & 10480 & 1000 & 0.5552 & 0.4044 & 0.3733 & -0.0310 \\
+\hline
+\end{tabular}
+\end{table}
+\noindent The strongest PCA gains were observed for SSL features, especially wav2vec2, where the compressed representation improved weighted F1 from 0.3681 to 0.3927. In contrast, PCA reduced performance for BERT, MFCC, and TF-IDF, indicating that variance preservation alone did not guarantee preservation of emotion-discriminative information.
+\subsection{feature\_test/classical\_feature\_system/}
+\textbf{What was done.} The classical-feature experiments were extended with a systematic brute-force search over feature-family combinations in addition to the earlier all-family ensemble notebook.
+\textbf{How it was done.} The notebook \texttt{feature\_family\_combinations\_bruteforce.ipynb} loads all available families through shared pipeline utilities, creates a fixed stratified 80/20 train/test split, and evaluates every combination of size 2, 3, and 4 using balanced logistic regression with imputation and scaling.
+\textbf{Results.} With 10 available families, the search space contains 45 two-family combinations, 120 three-family combinations, and 210 four-family combinations, for a total of 375 evaluated combinations. The notebook is configured to export a run-level CSV and summary JSON under \texttt{feature\_test/classical\_feature\_system/artifacts/family\_combo\_bruteforce/}, but no committed result artifacts are currently present in the repository. For the thesis, this experiment should therefore be described as an implemented evaluation workflow whose result tables still need to be regenerated and frozen.
+\subsection{feature\_augmentation/gan\_workflow/}
+\textbf{What was done.} A dedicated workflow scaffold was added for GAN-based augmentation of tabular feature sets.
+\textbf{How it was done.} The current implementation consists of a planning-oriented README, a decision log, a configuration template, and a helper script to estimate class-balancing targets before model training. The intended workflow is to train a class-conditional GAN on training features only, generate synthetic minority-class samples, export augmented training tables, and then rerun the downstream classifiers without modifying the held-out test split.
+\textbf{Results.} No GAN augmentation results have been committed yet. This part of the repository should therefore be written in the thesis as planned future work or as an implementation scaffold, not as a completed experiment.
+\subsection{experiments/}
+\textbf{What was done.} Repository-level experiment directories (\texttt{alpha}, \texttt{beta}, \texttt{gamma}) were initialized to support structured job tracking.
+\textbf{How it was done.} Each directory currently contains an \texttt{index.json} descriptor and a \texttt{jobs.json} file with an empty \texttt{TRAIN} queue and no cached jobs.
+\textbf{Results.} At the current stage, these directories provide experiment-management scaffolding rather than empirical findings. They are useful to mention only briefly in a reproducibility or infrastructure paragraph.
