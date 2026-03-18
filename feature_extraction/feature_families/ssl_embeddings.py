@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import numpy as np
 
+from feature_extraction.common import (
+    configure_cpu_math_threads,
+    machine_name_from_env,
+    resolve_thread_workers,
+    resolve_torch_device,
+)
 from utils.threading import threaded_map
 
 _MODEL_CACHE: dict[str, tuple[Any, Any]] = {}
@@ -29,9 +36,10 @@ def _get_model(model_name: str, device: str | None) -> tuple[Any, Any, str]:
     """Load or reuse the processor + model for the given name."""
 
     torch, (AutoModel, AutoProcessor) = _require_torch_stack()
+    machine_name = machine_name_from_env()
 
     if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = resolve_torch_device(machine_name)
 
     cached = _MODEL_CACHE.get(model_name)
     if cached is None:
@@ -129,6 +137,10 @@ def extract_batch(
     pool: tuple[str, ...] = ("mean", "std"),
 ) -> list[dict[str, np.ndarray]]:
     """Extract pooled SSL embeddings for many utterances."""
+
+    if max_workers is None and machine_name_from_env() == "macbook":
+        max_workers = resolve_thread_workers("macbook")
+        configure_cpu_math_threads("macbook", num_threads=max(1, min(max_workers, os.cpu_count() or 1)))
 
     def _worker(item: tuple[np.ndarray, int]) -> dict[str, np.ndarray]:
         audio, sr = item

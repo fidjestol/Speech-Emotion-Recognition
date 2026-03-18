@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import platform
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from typing import TypeVar
@@ -16,6 +17,15 @@ def available_workers(max_workers: int | None = None) -> int:
 
     cpu_count = os.cpu_count() or 1
     if max_workers is None:
+        machine_name = str(os.getenv("SER_MACHINE", "")).strip().lower()
+        is_macbook = machine_name == "macbook"
+        if not machine_name:
+            is_macbook = platform.system().lower() == "darwin" and platform.machine().lower() in {
+                "arm64",
+                "aarch64",
+            }
+        if is_macbook:
+            return max(1, min(cpu_count - 2, 8))
         return max(1, cpu_count)
     return max(1, min(cpu_count, int(max_workers)))
 
