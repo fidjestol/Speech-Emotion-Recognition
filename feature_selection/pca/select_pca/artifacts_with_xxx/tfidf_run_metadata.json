@@ -1,0 +1,160 @@
+{
+  "dataset_key": "tfidf",
+  "source_path": "/Users/fidjestol/Documents/GitHub/Speech-Emotion-Recognition/extracted_features/text/tfidf_features.csv",
+  "artifact_dir": "/Users/fidjestol/Documents/GitHub/Speech-Emotion-Recognition/feature_selection/pca/select_pca/artifacts_with_xxx",
+  "target_col": "emotion",
+  "machine_name": "macbook",
+  "include_xxx": true,
+  "variant_name": "with_xxx",
+  "require_agreement": true,
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "use_variant_artifact_dirs": true,
+  "rows_loaded": 216,
+  "rows_after_filter": 216,
+  "rows_used": 216,
+  "original_features": 10480,
+  "feature_columns_used": 10480,
+  "dropped_feature_columns": 0,
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad",
+    "xxx"
+  ],
+  "pca_components_config": 1000,
+  "decomposition_method": "truncated_svd",
+  "pca_components_effective": 172,
+  "pca_explained_variance_total": 0.9999999999999999,
+  "random_state": 42,
+  "test_size": 0.2,
+  "model_parallel_jobs": 1,
+  "model_parallel_mode": "sequential",
+  "best_baseline_model": "linear_svc",
+  "best_pca_model": "linear_svc",
+  "baseline_accuracy": 0.36363636363636365,
+  "baseline_f1_weighted": 0.3439272403176146,
+  "pca_accuracy": 0.29545454545454547,
+  "pca_f1_weighted": 0.326569264069264,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.36363636363636365,
+      "precision_weighted": 0.3373803827751196,
+      "recall_weighted": 0.36363636363636365,
+      "f1_weighted": 0.3439272403176146,
+      "f1_macro": 0.21326712503183093
+    },
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.3409090909090909,
+      "precision_weighted": 0.24070247933884295,
+      "recall_weighted": 0.3409090909090909,
+      "f1_weighted": 0.24707178164624974,
+      "f1_macro": 0.12850388382303274
+    },
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.29545454545454547,
+      "precision_weighted": 0.2176923076923077,
+      "recall_weighted": 0.29545454545454547,
+      "f1_weighted": 0.24092429309820618,
+      "f1_macro": 0.12887402452619842
+    }
+  ],
+  "pca_model_metrics": [
+    {
+      "stage": "pca",
+      "model": "linear_svc",
+      "accuracy": 0.29545454545454547,
+      "precision_weighted": 0.4109733700642791,
+      "recall_weighted": 0.29545454545454547,
+      "f1_weighted": 0.326569264069264,
+      "f1_macro": 0.23299319727891157
+    },
+    {
+      "stage": "pca",
+      "model": "logreg",
+      "accuracy": 0.18181818181818182,
+      "precision_weighted": 0.4227092352092352,
+      "recall_weighted": 0.18181818181818182,
+      "f1_weighted": 0.2064842948198563,
+      "f1_macro": 0.18264366352601646
+    },
+    {
+      "stage": "pca",
+      "model": "random_forest",
+      "accuracy": 0.2727272727272727,
+      "precision_weighted": 0.1681329423264907,
+      "recall_weighted": 0.2727272727272727,
+      "f1_weighted": 0.19904306220095694,
+      "f1_macro": 0.10225563909774436
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.36363636363636365,
+      "precision_weighted_baseline": 0.3373803827751196,
+      "recall_weighted_baseline": 0.36363636363636365,
+      "f1_weighted_baseline": 0.3439272403176146,
+      "f1_macro_baseline": 0.21326712503183093,
+      "accuracy_selected": 0.29545454545454547,
+      "precision_weighted_selected": 0.4109733700642791,
+      "recall_weighted_selected": 0.29545454545454547,
+      "f1_weighted_selected": 0.326569264069264,
+      "f1_macro_selected": 0.23299319727891157,
+      "accuracy_delta": -0.06818181818181818,
+      "precision_weighted_delta": 0.07359298728915947,
+      "recall_weighted_delta": -0.06818181818181818,
+      "f1_weighted_delta": -0.017357976248350615,
+      "f1_macro_delta": 0.019726072247080645
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.29545454545454547,
+      "precision_weighted_baseline": 0.2176923076923077,
+      "recall_weighted_baseline": 0.29545454545454547,
+      "f1_weighted_baseline": 0.24092429309820618,
+      "f1_macro_baseline": 0.12887402452619842,
+      "accuracy_selected": 0.18181818181818182,
+      "precision_weighted_selected": 0.4227092352092352,
+      "recall_weighted_selected": 0.18181818181818182,
+      "f1_weighted_selected": 0.2064842948198563,
+      "f1_macro_selected": 0.18264366352601646,
+      "accuracy_delta": -0.11363636363636365,
+      "precision_weighted_delta": 0.2050169275169275,
+      "recall_weighted_delta": -0.11363636363636365,
+      "f1_weighted_delta": -0.03443999827834987,
+      "f1_macro_delta": 0.05376963899981804
+    },
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.3409090909090909,
+      "precision_weighted_baseline": 0.24070247933884295,
+      "recall_weighted_baseline": 0.3409090909090909,
+      "f1_weighted_baseline": 0.24707178164624974,
+      "f1_macro_baseline": 0.12850388382303274,
+      "accuracy_selected": 0.2727272727272727,
+      "precision_weighted_selected": 0.1681329423264907,
+      "recall_weighted_selected": 0.2727272727272727,
+      "f1_weighted_selected": 0.19904306220095694,
+      "f1_macro_selected": 0.10225563909774436,
+      "accuracy_delta": -0.06818181818181818,
+      "precision_weighted_delta": -0.07256953701235225,
+      "recall_weighted_delta": -0.06818181818181818,
+      "f1_weighted_delta": -0.0480287194452928,
+      "f1_macro_delta": -0.026248244725288375
+    }
+  ]
+}
