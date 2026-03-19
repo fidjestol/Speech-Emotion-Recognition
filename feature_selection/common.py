@@ -33,6 +33,7 @@ FEATURE_SOURCE_RELATIVE_PATHS: dict[str, Path] = {
     "prosody_pitch": Path("extracted_features/prosody_pitch/prosody_pitch_features.csv"),
     "bert": Path("extracted_features/text/bert_embeddings.csv"),
     "tfidf": Path("extracted_features/text/tfidf_features.csv"),
+    "tfidf_kernel_pca": Path("extracted_features/text/tfidf_features.csv"),
     "representations": Path("extracted_features/representations/representations_features.csv"),
     "rhythm_pauses": Path("extracted_features/rhythm_pauses/rhythm_pauses_features.csv"),
     "tonality": Path("extracted_features/tonality/tonality_features.csv"),
@@ -43,6 +44,7 @@ FEATURE_SOURCE_RELATIVE_PATHS: dict[str, Path] = {
 }
 
 PCA_CPU_SKIP_NOTEBOOKS = {
+    "kernel_pca_tfidf.ipynb",
     "pca_artifact_xxx_analysis.ipynb",
     "pca_tfidf_gpu.ipynb",
 }
@@ -151,6 +153,22 @@ def resolve_random_forest_jobs(machine_name: str | None = None) -> int:
     if machine == "macbook":
         return 1
     return -1
+
+
+def resolve_pca_component_count(
+    requested_components: int | float | None,
+    *,
+    n_samples: int,
+    n_features: int,
+) -> int | float:
+    max_components = max(1, min(int(n_samples), int(n_features)))
+    if requested_components is None:
+        return max_components
+    if isinstance(requested_components, float):
+        if 0 < requested_components < 1:
+            return requested_components
+        return max(1, min(int(round(requested_components)), max_components))
+    return max(1, min(int(requested_components), max_components))
 
 
 def filter_feature_frame(
