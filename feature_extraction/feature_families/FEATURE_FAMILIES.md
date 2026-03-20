@@ -8,6 +8,7 @@ Feature family notebooks
 - smilesets.ipynb: openSMILE standard feature sets (eGeMAPS/GeMAPS/ComParE).
 - spectral_shape.ipynb: Spectral-shape contours (centroid, rolloff, contrast, etc.) with summaries.
 - ssl_embeddings.ipynb: HuBERT/wav2vec2 embeddings with pooled mean/std and caching.
+- text_lda_topics.ipynb: LDA topic-distribution features from utterance transcripts, plus dialogue-context topic features.
 - tonality.ipynb: Chroma and tonnetz summaries over time.
 - voice_quality.ipynb: HNR via parselmouth with HPSS fallback proxy.
 

@@ -17,6 +17,9 @@ METADATA_COLUMNS = [
     "emotion",
     "n_annotators",
     "agreement",
+    "utt_id",
+    "text",
+    "split",
 ]
 
 FAMILY_SOURCES = {
@@ -26,6 +29,8 @@ FAMILY_SOURCES = {
     "prosody_pitch": Path("extracted_features/prosody_pitch/prosody_pitch_features.csv"),
     "tfidf": Path("extracted_features/text/tfidf_features.csv"),
     "bert": Path("extracted_features/text/bert_embeddings.csv"),
+    "lda_topics": Path("extracted_features/text/lda_topics.csv"),
+    "lda_topics_context": Path("extracted_features/text/lda_topics_context.csv"),
     "representations": Path("extracted_features/representations/representations_features.csv"),
     "rhythm_pauses": Path("extracted_features/rhythm_pauses/rhythm_pauses_features.csv"),
     "ssl_embeddings": Path("extracted_features/ssl_embeddings/ssl_embeddings_features.csv"),
@@ -47,6 +52,8 @@ FAMILY_GENERATOR_NOTEBOOKS = {
     "prosody_pitch": Path("feature_extraction/feature_families/prosody_pitch.ipynb"),
     "tfidf": Path("feature_extraction/feature_families/text_tfidf.ipynb"),
     "bert": Path("feature_extraction/feature_families/text_bert_embeddings.ipynb"),
+    "lda_topics": Path("feature_extraction/feature_families/text_lda_topics.ipynb"),
+    "lda_topics_context": Path("feature_extraction/feature_families/text_lda_topics.ipynb"),
     "representations": Path("feature_extraction/feature_families/representations.ipynb"),
     "rhythm_pauses": Path("feature_extraction/feature_families/rhythm_pauses.ipynb"),
     "ssl_embeddings": Path("feature_extraction/feature_families/ssl_embeddings_wav2vec.ipynb"),
@@ -61,6 +68,8 @@ ANOVA_FAMILIES = [
     "prosody_pitch",
     "tfidf",
     "bert",
+    "lda_topics",
+    "lda_topics_context",
 ]
 
 
