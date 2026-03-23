@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 import os
+import platform
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
     import pandas as pd
 
-DEFAULT_MACHINE_NAME = "macbook"
+def detect_machine_name() -> str:
+    system = platform.system().strip().lower()
+    if system == "darwin":
+        return "macbook"
+    return "desktop"
+
+
+DEFAULT_MACHINE_NAME = detect_machine_name()
 DEFAULT_EXCLUDED_EMOTIONS = ("sur", "fea", "oth", "dis")
 DEFAULT_REQUIRE_AGREEMENT = True
 DEFAULT_INCLUDE_XXX = True
