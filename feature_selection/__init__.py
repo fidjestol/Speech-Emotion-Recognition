@@ -1,1 +1,1 @@
-"""Shared helpers for feature-selection notebooks."""
+"""Shared helpers for feature-selection and augmentation workflows."""

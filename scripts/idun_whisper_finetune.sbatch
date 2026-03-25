@@ -25,7 +25,7 @@
 #SBATCH --time=30:00:00
 #SBATCH --output=logs/slurm-whisper-ft-%j.out
 #SBATCH --error=logs/slurm-whisper-ft-%j.err
-#SBATCH --account=ie-idi
+#SBATCH --account=share-ie-idi
 
 set -euo pipefail
 
@@ -77,6 +77,7 @@ LOGGING_STEPS="${LOGGING_STEPS:-10}"
 EVAL_STEPS="${EVAL_STEPS:-100}"
 SAVE_STEPS="${SAVE_STEPS:-100}"
 NUM_WORKERS="${NUM_WORKERS:-2}"
+REPORT_TO="${REPORT_TO:-tensorboard}"
 RUN_BOTH_VARIANTS="${RUN_BOTH_VARIANTS:-true}"
 RESUME_MODE="${RESUME_MODE:-none}"
 
@@ -92,7 +93,7 @@ CMD=(
   --logging-steps "${LOGGING_STEPS}"
   --eval-steps "${EVAL_STEPS}"
   --save-steps "${SAVE_STEPS}"
-  --report-to tensorboard
+  --report-to "${REPORT_TO}"
   --dataloader-num-workers "${NUM_WORKERS}"
 )
 

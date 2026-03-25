@@ -30,13 +30,14 @@ from transformers import (
     AutoFeatureExtractor,
     AutoModelForAudioClassification,
     Trainer,
+    TrainerCallback,
     TrainingArguments,
     default_data_collator,
     set_seed,
 )
 
 MODEL_ID = "openai/whisper-large-v3"
-BASE_TARGET_LABELS = ["ang", "fea", "hap", "neu", "sad", "sur"]
+BASE_TARGET_LABELS = ["fru", "neu", "ang", "sad", "exc", "hap"]
 DEFAULT_OUTPUT_DIR = "whisper/finetuning/artifacts"
 DEFAULT_TEST_SIZE = 0.20
 DEFAULT_VAL_SIZE = 0.10
@@ -53,12 +54,12 @@ DEFAULT_EVAL_STEPS = 100
 DEFAULT_SAVE_TOTAL_LIMIT = 2
 
 BASE_IEMOCAP_TO_LABEL = {
-    "ang": "ang",
-    "fea": "fea",
-    "hap": "hap",
+    "fru": "fru",
     "neu": "neu",
+    "ang": "ang",
     "sad": "sad",
-    "sur": "sur",
+    "exc": "exc",
+    "hap": "hap",
 }
 
 
@@ -69,6 +70,20 @@ class VariantArtifacts:
     report_dir: str
     figures_dir: str
     tensorboard_dir: str
+
+
+def parse_report_to(value: str) -> list[str]:
+    reporters = [item.strip().lower() for item in value.split(",") if item.strip()]
+    if not reporters:
+        raise argparse.ArgumentTypeError("Expected at least one reporting backend.")
+
+    allowed = {"tensorboard", "wandb", "none"}
+    invalid = [item for item in reporters if item not in allowed]
+    if invalid:
+        raise argparse.ArgumentTypeError(f"Unsupported report backend(s): {', '.join(invalid)}")
+    if "none" in reporters and len(reporters) > 1:
+        raise argparse.ArgumentTypeError("'none' cannot be combined with other reporting backends.")
+    return reporters
 
 
 def parse_args() -> argparse.Namespace:
@@ -171,9 +186,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--report-to",
-        default="tensorboard",
-        choices=["tensorboard", "none"],
-        help="Trainer reporting backend. tensorboard is recommended on Idun.",
+        type=parse_report_to,
+        default=["tensorboard"],
+        help="Comma-separated reporting backends: tensorboard, wandb, or none.",
     )
     parser.add_argument(
         "--save-figures",
@@ -380,6 +395,35 @@ def save_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(to_builtin(payload), indent=2), encoding="utf-8")
 
 
+def collect_gpu_memory_stats(device: torch.device) -> dict[str, float]:
+    if device.type != "cuda" or not torch.cuda.is_available():
+        return {}
+
+    device_index = device.index if device.index is not None else torch.cuda.current_device()
+    allocated = torch.cuda.memory_allocated(device_index)
+    reserved = torch.cuda.memory_reserved(device_index)
+    max_allocated = torch.cuda.max_memory_allocated(device_index)
+    max_reserved = torch.cuda.max_memory_reserved(device_index)
+    bytes_per_gib = float(1024**3)
+    return {
+        "gpu_memory_allocated_gib": allocated / bytes_per_gib,
+        "gpu_memory_reserved_gib": reserved / bytes_per_gib,
+        "gpu_memory_peak_allocated_gib": max_allocated / bytes_per_gib,
+        "gpu_memory_peak_reserved_gib": max_reserved / bytes_per_gib,
+    }
+
+
+class GpuMemoryLoggingCallback(TrainerCallback):
+    def __init__(self, device: torch.device):
+        self.device = device
+
+    def on_log(self, args: Any, state: Any, control: Any, logs: dict[str, Any] | None = None, **kwargs: Any) -> Any:
+        if logs is None:
+            return control
+        logs.update(collect_gpu_memory_stats(self.device))
+        return control
+
+
 def save_confusion_matrix_figure(
     path: Path,
     matrix: np.ndarray,
@@ -472,7 +516,7 @@ def build_training_args(
         "load_best_model_at_end": True,
         "metric_for_best_model": "f1_macro",
         "greater_is_better": True,
-        "report_to": [] if args.report_to == "none" else [args.report_to],
+        "report_to": [] if args.report_to == ["none"] else args.report_to,
         "fp16": fp16,
         "bf16": bf16,
         "remove_unused_columns": False,
@@ -485,7 +529,7 @@ def build_training_args(
     else:
         kwargs["warmup_ratio"] = args.warmup_ratio
 
-    if args.report_to == "tensorboard":
+    if "tensorboard" in args.report_to:
         os.environ["TENSORBOARD_LOGGING_DIR"] = str(tensorboard_dir)
 
     signature = inspect.signature(TrainingArguments.__init__)
@@ -620,6 +664,8 @@ def summarize_environment(device: torch.device) -> dict[str, Any]:
     if torch.cuda.is_available():
         summary["cuda_device_count"] = torch.cuda.device_count()
         summary["cuda_device_name"] = torch.cuda.get_device_name(0)
+        total_memory_bytes = torch.cuda.get_device_properties(0).total_memory
+        summary["cuda_total_memory_gib"] = total_memory_bytes / float(1024**3)
     return summary
 
 
@@ -699,6 +745,8 @@ def train_variant(
         model = model.float()
     if args.freeze_encoder and hasattr(model, "freeze_encoder"):
         model.freeze_encoder()
+    if device.type == "cuda" and torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
 
     train_dataset = IemocapWhisperDataset(train_df, feature_extractor=feature_extractor, max_duration=args.max_duration)
     val_dataset = IemocapWhisperDataset(val_df, feature_extractor=feature_extractor, max_duration=args.max_duration)
@@ -719,6 +767,7 @@ def train_variant(
         eval_dataset=val_dataset,
         data_collator=default_data_collator,
         compute_metrics=compute_metrics,
+        callbacks=[GpuMemoryLoggingCallback(device)],
     )
 
     resume_checkpoint = discover_resume_checkpoint(variant_dir=variant_dir, requested=args.resume_from_checkpoint)
@@ -740,6 +789,7 @@ def train_variant(
         variant_dir=variant_dir,
         save_figures=args.save_figures,
     )
+    gpu_memory_summary = collect_gpu_memory_stats(device)
 
     metadata = {
         "variant": name,
@@ -751,6 +801,7 @@ def train_variant(
         "resume_from_checkpoint": resume_checkpoint,
         "training_args": training_args.to_dict(),
         "artifacts": artifact_paths,
+        "gpu_memory_summary": gpu_memory_summary,
     }
     save_json(variant_dir / "run_metadata.json", metadata)
 
@@ -767,6 +818,7 @@ def train_variant(
         "tensorboard_dir": artifact_paths["tensorboard_dir"],
         "best_model_checkpoint": trainer.state.best_model_checkpoint,
     }
+    summary.update(gpu_memory_summary)
     for source in (train_result.metrics, val_metrics, test_metrics):
         for key, value in source.items():
             if isinstance(value, (int, float)):
@@ -811,11 +863,12 @@ def print_start_banner(run_dir: Path, environment_summary: dict[str, Any], args:
     if environment_summary.get("cuda_device_name"):
         print(f"CUDA device: {environment_summary['cuda_device_name']}")
     print(f"Schedule mode: {args.schedule_mode}")
+    print(f"Base target labels: {', '.join(BASE_TARGET_LABELS)}")
     if args.schedule_mode == "steps":
         print(f"Logging steps: {args.logging_steps}")
         print(f"Eval steps: {args.eval_steps}")
         print(f"Save steps: {args.save_steps or args.eval_steps}")
-    print(f"TensorBoard reporting: {args.report_to}")
+    print(f"Reporting backends: {', '.join(args.report_to)}")
 
 
 def main() -> None:
@@ -833,7 +886,15 @@ def main() -> None:
     environment_summary = summarize_environment(device)
     environment_summary["sampling_rate"] = feature_extractor.sampling_rate
     environment_summary["effective_precision"] = effective_precision
+    environment_summary["base_target_labels"] = list(BASE_TARGET_LABELS)
     print_start_banner(run_dir=run_dir, environment_summary=environment_summary, args=args)
+    if "wandb" in args.report_to:
+        try:
+            import wandb  # noqa: F401
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "wandb reporting was requested but the package is not installed in the active environment."
+            ) from exc
 
     variants_to_run = [True, False] if args.run_both_xxx_variants else [args.include_xxx]
     variant_results = [

@@ -7,7 +7,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-from feature_selection.common import DEFAULT_USE_VARIANT_ARTIFACT_DIRS, resolve_variant_artifact_dir
+from feature_selection.common import DEFAULT_USE_VARIANT_ARTIFACT_DIRS, variant_name
 
 DEFAULT_AUGMENTATION_METHOD = "class_conditional_mean_std_oversampling"
 DEFAULT_GROUP_SIZE = 5
@@ -21,13 +21,17 @@ def resolve_augmentation_artifact_dir(
     *,
     include_xxx: bool,
     use_variant_dirs: bool = DEFAULT_USE_VARIANT_ARTIFACT_DIRS,
+    run_name: str | None = None,
+    dataset_key: str | None = None,
 ) -> Path:
-    base_dir = repo_root / "feature_augmentation" / "mean_std_oversampling" / "artifacts"
-    return resolve_variant_artifact_dir(
-        base_dir,
-        include_xxx=include_xxx,
-        use_variant_dirs=use_variant_dirs,
-    )
+    artifact_dir = repo_root / "feature_augmentation" / "mean_std_oversampling" / "artifacts"
+    if run_name:
+        artifact_dir = artifact_dir / str(run_name)
+    if use_variant_dirs:
+        artifact_dir = artifact_dir / variant_name(include_xxx)
+    if dataset_key:
+        artifact_dir = artifact_dir / str(dataset_key)
+    return artifact_dir
 
 
 def resolve_prototype_artifact_dir(
@@ -236,7 +240,7 @@ def build_classification_report_frame(
             "f1_score": float(values.get("f1-score", 0.0)),
             "support": int(values.get("support", 0)),
         }
-        row["label_type"] = "class" if label_name not in {"macro avg", "weighted avg"} else "summary"
+        row["label_type"] = "class" if label_name not in {"macro avg", "weighted avg", "micro avg"} else "summary"
         rows.append(row)
     return pd.DataFrame(rows)
 
@@ -261,4 +265,62 @@ def build_confusion_matrix_frame(
                     "count": int(confusion_matrix_values[true_idx, pred_idx]),
                 }
             )
+    return pd.DataFrame(rows)
+
+
+def build_normalized_confusion_matrix_frame(
+    confusion_matrix_values: np.ndarray,
+    *,
+    labels: Iterable[object],
+    stage_name: str,
+    model_name: str,
+) -> pd.DataFrame:
+    ordered_labels = [str(label) for label in labels]
+    rows: list[dict[str, object]] = []
+    for true_idx, true_label in enumerate(ordered_labels):
+        row_sum = float(confusion_matrix_values[true_idx].sum())
+        for pred_idx, pred_label in enumerate(ordered_labels):
+            value = 0.0 if row_sum == 0 else float(confusion_matrix_values[true_idx, pred_idx]) / row_sum
+            rows.append(
+                {
+                    "stage": str(stage_name),
+                    "model": str(model_name),
+                    "true_label": true_label,
+                    "predicted_label": pred_label,
+                    "normalized_value": value,
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def compute_binary_classification_stats(
+    confusion_matrix_values: np.ndarray,
+    *,
+    labels: Iterable[object],
+    stage_name: str,
+    model_name: str,
+) -> pd.DataFrame:
+    ordered_labels = [str(label) for label in labels]
+    total = int(confusion_matrix_values.sum())
+    rows: list[dict[str, object]] = []
+    for idx, label in enumerate(ordered_labels):
+        tp = int(confusion_matrix_values[idx, idx])
+        fn = int(confusion_matrix_values[idx, :].sum() - tp)
+        fp = int(confusion_matrix_values[:, idx].sum() - tp)
+        tn = int(total - tp - fp - fn)
+        one_vs_rest_accuracy = 0.0 if total == 0 else float(tp + tn) / float(total)
+        class_accuracy = 0.0 if tp + fn == 0 else float(tp) / float(tp + fn)
+        rows.append(
+            {
+                "stage": str(stage_name),
+                "model": str(model_name),
+                "label": label,
+                "tp": tp,
+                "tn": tn,
+                "fp": fp,
+                "fn": fn,
+                "class_accuracy": class_accuracy,
+                "one_vs_rest_accuracy": one_vs_rest_accuracy,
+            }
+        )
     return pd.DataFrame(rows)

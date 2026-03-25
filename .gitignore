@@ -30,10 +30,17 @@ dist/
 outputs/
 logs/
 whisper/finetuning/artifacts/
+feature_augmentation/mean_std_oversampling/artifacts/
+catboost_info/
 *.pdf
 *.html
 *.ps1
-
+wandb/
+*.wandb
+wandb/latest-run
+wandb/debug.log
+wandb/debug-internal.log
+=*
 # Large datasets (keep metadata TSVs, ignore audio clips)
 datasets/**/clips/
 datasets/IEMOCAP/**

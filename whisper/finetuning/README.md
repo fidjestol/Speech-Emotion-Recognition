@@ -2,19 +2,26 @@
 
 This folder contains the Whisper finetuning workflow for adapting Whisper to IEMOCAP with two supported variants:
 
+- `fru`
+- `neu`
+- `ang`
+- `sad`
+- `exc`
+- `hap`
+
+The script defaults to running both:
+
 - `with_xxx`
 - `without_xxx`
 
-The script defaults to running both so you can compare them directly in one run.
-
 The shared retained labels are:
 
-- `ang`
-- `fea`
-- `hap`
+- `fru`
 - `neu`
+- `ang`
 - `sad`
-- `sur`
+- `exc`
+- `hap`
 
 Optional label:
 
@@ -22,8 +29,6 @@ Optional label:
 
 Still excluded:
 
-- `exc`
-- `fru`
 - `oth`
 - `dis`
 
@@ -55,6 +60,7 @@ The script adds:
 
 - step-based logging, evaluation, and checkpoint saving
 - TensorBoard logging
+- optional Weights & Biases logging with `--report-to wandb` or `--report-to tensorboard,wandb`
 - resumable checkpoints with `--resume-from-checkpoint latest`
 - saved `train/val/test` split summaries
 - saved trainer history as CSV/JSON
@@ -97,6 +103,12 @@ Balanced per-label GPU sanity test:
 
 ```bash
 python whisper/finetuning/finetune_whisper_ser.py --model-id openai/whisper-small --device cuda --max-samples-per-label 10 --num-train-epochs 0.2 --train-batch-size 1 --eval-batch-size 1 --max-duration 30 --freeze-encoder --eval-steps 5 --save-steps 5 --run-name login_gpu_test_10_per_label_whisper_small_both_variants
+```
+
+Use Weights & Biases as well:
+
+```bash
+WANDB_API_KEY=... WANDB_PROJECT=ser-whisper python whisper/finetuning/finetune_whisper_ser.py --report-to tensorboard,wandb
 ```
 
 Single variant example:
