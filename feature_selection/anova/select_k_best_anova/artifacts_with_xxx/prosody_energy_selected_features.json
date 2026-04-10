@@ -1,0 +1,10 @@
+[
+  "duration_s",
+  "energy_frames",
+  "energy_voiced_ratio",
+  "energy_rms_db_mean",
+  "energy_rms_db_std",
+  "energy_rms_db_min",
+  "energy_rms_db_max",
+  "energy_rms_db_median"
+]
