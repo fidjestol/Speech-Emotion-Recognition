@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:h100:1
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=24:00:00
 #SBATCH --output=logs/slurm-feature-augmentation-gpu-%j.out
@@ -46,6 +46,7 @@ SKIP_EXISTING="${SKIP_EXISTING:-0}"
 SAVE_AUGMENTED_MATRICES="${SAVE_AUGMENTED_MATRICES:-0}"
 SAVE_MODELS="${SAVE_MODELS:-1}"
 EXCLUDED_EMOTIONS="${EXCLUDED_EMOTIONS:-sur fea oth dis}"
+MODELS="${MODELS:-logreg linear_svc_cal random_forest xgboost catboost soft_voting stacking}"
 
 echo "Start: $(date)"
 echo "Host: $(hostname)"
@@ -54,6 +55,7 @@ echo "Report to: ${REPORT_TO}"
 echo "Dataset keys: ${DATASET_KEYS}"
 echo "Run both variants: ${RUN_BOTH_VARIANTS}"
 echo "Enable GPU models: ${ENABLE_GPU_MODELS}"
+echo "Models: ${MODELS}"
 echo "CUDA visible devices: ${CUDA_VISIBLE_DEVICES:-<unset>}"
 
 python - <<'PY'
@@ -87,6 +89,11 @@ done
 cmd+=(--excluded-emotions)
 for emotion in ${EXCLUDED_EMOTIONS}; do
   cmd+=("${emotion}")
+done
+
+cmd+=(--models)
+for model in ${MODELS}; do
+  cmd+=("${model}")
 done
 
 if [[ -n "${WANDB_ENTITY}" ]]; then

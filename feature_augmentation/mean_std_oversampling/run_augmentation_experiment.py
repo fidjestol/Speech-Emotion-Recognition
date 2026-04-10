@@ -64,6 +64,16 @@ from feature_selection.common import (  # noqa: E402
 plt.style.use("ggplot")
 sns.set_theme(style="whitegrid")
 
+ALL_MODEL_NAMES = [
+    "logreg",
+    "linear_svc_cal",
+    "random_forest",
+    "xgboost",
+    "catboost",
+    "soft_voting",
+    "stacking",
+]
+
 
 def is_metadata_column(column_name: str) -> bool:
     if column_name in METADATA_CANDIDATES:
@@ -106,6 +116,7 @@ class ExperimentArgs:
     wandb_group: str | None
     save_augmented_matrices: bool
     save_models: bool
+    models: list[str]
     xgb_estimators: int
     xgb_learning_rate: float
     xgb_max_depth: int
@@ -417,9 +428,104 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
         json.dump(payload, handle, indent=2)
 
 
+def read_json(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def save_model(model: Any, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)
+
+
+def checkpoint_dir_for_fold(reports_dir: Path, fold_label: str) -> Path:
+    return reports_dir / "fold_checkpoints" / fold_label
+
+
+def save_fold_checkpoint(
+    *,
+    checkpoint_dir: Path,
+    dataset_key: str,
+    fold_label: str,
+    held_out_session: int,
+    baseline_results: pd.DataFrame,
+    augmented_results: pd.DataFrame,
+    baseline_reports: list[pd.DataFrame],
+    augmented_reports: list[pd.DataFrame],
+    baseline_confs: list[pd.DataFrame],
+    augmented_confs: list[pd.DataFrame],
+    baseline_confs_norm: list[pd.DataFrame],
+    augmented_confs_norm: list[pd.DataFrame],
+    baseline_binary: list[pd.DataFrame],
+    augmented_binary: list[pd.DataFrame],
+    baseline_predictions: list[dict[str, Any]],
+    augmented_predictions: list[dict[str, Any]],
+    baseline_saved: list[dict[str, Any]],
+    augmented_saved: list[dict[str, Any]],
+    augmentation_summary_df: pd.DataFrame,
+    fold_stage_counts: list[pd.DataFrame],
+) -> None:
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    pd.concat([baseline_results, augmented_results], ignore_index=True).to_csv(
+        checkpoint_dir / f"{dataset_key}_fold_metrics.csv",
+        index=False,
+    )
+    pd.concat([*baseline_reports, *augmented_reports], ignore_index=True).to_csv(
+        checkpoint_dir / f"{dataset_key}_classification_reports.csv",
+        index=False,
+    )
+    pd.concat([*baseline_confs, *augmented_confs], ignore_index=True).to_csv(
+        checkpoint_dir / f"{dataset_key}_confusion_matrices.csv",
+        index=False,
+    )
+    pd.concat([*baseline_confs_norm, *augmented_confs_norm], ignore_index=True).to_csv(
+        checkpoint_dir / f"{dataset_key}_confusion_matrices_normalized.csv",
+        index=False,
+    )
+    pd.concat([*baseline_binary, *augmented_binary], ignore_index=True).to_csv(
+        checkpoint_dir / f"{dataset_key}_per_class_accuracy.csv",
+        index=False,
+    )
+    pd.DataFrame([*baseline_predictions, *augmented_predictions]).to_csv(
+        checkpoint_dir / f"{dataset_key}_fold_predictions.csv",
+        index=False,
+    )
+    pd.DataFrame([*baseline_saved, *augmented_saved]).to_csv(
+        checkpoint_dir / f"{dataset_key}_saved_models.csv",
+        index=False,
+    )
+    augmentation_summary_df.to_csv(
+        checkpoint_dir / f"{dataset_key}_augmentation_summary_by_fold.csv",
+        index=False,
+    )
+    pd.concat(fold_stage_counts, ignore_index=True).to_csv(
+        checkpoint_dir / f"{dataset_key}_fold_class_counts.csv",
+        index=False,
+    )
+    write_json(
+        checkpoint_dir / "fold_complete.json",
+        {
+            "dataset_key": dataset_key,
+            "fold": fold_label,
+            "held_out_session": held_out_session,
+            "status": "completed",
+        },
+    )
+
+
+def load_fold_checkpoint(*, checkpoint_dir: Path, dataset_key: str) -> dict[str, pd.DataFrame]:
+    return {
+        "fold_metrics": pd.read_csv(checkpoint_dir / f"{dataset_key}_fold_metrics.csv"),
+        "classification_reports": pd.read_csv(checkpoint_dir / f"{dataset_key}_classification_reports.csv"),
+        "confusion_matrices": pd.read_csv(checkpoint_dir / f"{dataset_key}_confusion_matrices.csv"),
+        "confusion_matrices_normalized": pd.read_csv(checkpoint_dir / f"{dataset_key}_confusion_matrices_normalized.csv"),
+        "per_class_accuracy": pd.read_csv(checkpoint_dir / f"{dataset_key}_per_class_accuracy.csv"),
+        "fold_predictions": pd.read_csv(checkpoint_dir / f"{dataset_key}_fold_predictions.csv"),
+        "saved_models": pd.read_csv(checkpoint_dir / f"{dataset_key}_saved_models.csv"),
+        "augmentation_summary_by_fold": pd.read_csv(checkpoint_dir / f"{dataset_key}_augmentation_summary_by_fold.csv"),
+        "fold_class_counts": pd.read_csv(checkpoint_dir / f"{dataset_key}_fold_class_counts.csv"),
+        "meta": pd.DataFrame([read_json(checkpoint_dir / "fold_complete.json")]),
+    }
 
 
 def plot_class_distributions(raw_counts: pd.DataFrame, filtered_counts: pd.DataFrame, *, target_col: str, variant: str):
@@ -518,6 +624,7 @@ def build_parser() -> argparse.ArgumentParser:
         action=argparse.BooleanOptionalAction,
         default=True,
     )
+    parser.add_argument("--models", nargs="*", default=list(ALL_MODEL_NAMES), choices=ALL_MODEL_NAMES)
     parser.add_argument("--xgb-estimators", type=int, default=400)
     parser.add_argument("--xgb-learning-rate", type=float, default=0.05)
     parser.add_argument("--xgb-max-depth", type=int, default=6)
@@ -550,6 +657,7 @@ def parse_args(argv: list[str] | None = None) -> ExperimentArgs:
         wandb_group=args.wandb_group,
         save_augmented_matrices=bool(args.save_augmented_matrices),
         save_models=bool(args.save_models),
+        models=list(args.models),
         xgb_estimators=int(args.xgb_estimators),
         xgb_learning_rate=float(args.xgb_learning_rate),
         xgb_max_depth=int(args.xgb_max_depth),
@@ -860,6 +968,8 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
         xgb_subsample=args.xgb_subsample,
         xgb_colsample_bytree=args.xgb_colsample_bytree,
     )
+    requested_models = list(dict.fromkeys(args.models))
+    model_builders = {name: model_builders[name] for name in requested_models}
 
     logo = LeaveOneGroupOut()
     total_outer_folds = int(groups.nunique())
@@ -917,6 +1027,36 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
     for fold_idx, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups), start=1):
         held_out_session = int(pd.Series(groups.iloc[test_idx]).iloc[0])
         fold_label = f"session_{held_out_session}"
+        checkpoint_dir = checkpoint_dir_for_fold(reports_dir, fold_label)
+        checkpoint_meta = checkpoint_dir / "fold_complete.json"
+        if checkpoint_meta.exists():
+            restored = load_fold_checkpoint(checkpoint_dir=checkpoint_dir, dataset_key=args.dataset_key)
+            fold_metric_frames.append(restored["fold_metrics"])
+            report_frames.append(restored["classification_reports"])
+            conf_frames.append(restored["confusion_matrices"])
+            conf_norm_frames.append(restored["confusion_matrices_normalized"])
+            binary_frames.append(restored["per_class_accuracy"])
+            prediction_rows.extend(restored["fold_predictions"].to_dict(orient="records"))
+            saved_models_rows.extend(restored["saved_models"].to_dict(orient="records"))
+            augmentation_summary_frames.append(restored["augmentation_summary_by_fold"])
+            fold_stage_counts_frames.append(restored["fold_class_counts"])
+            progress_state["completed_model_fits"] += len(stages_per_fold) * len(model_names)
+            print(
+                f"[fold] dataset={args.dataset_key} variant={variant} fold_index={fold_idx}/{total_outer_folds} "
+                f"held_out_session={held_out_session} status=resume_skip completed_fits={progress_state['completed_model_fits']}/{total_model_fits}",
+                flush=True,
+            )
+            if wandb_run is not None:
+                wandb_run.log(
+                    {
+                        "progress/current_outer_fold": fold_idx,
+                        "progress/total_outer_folds": total_outer_folds,
+                        "progress/current_held_out_session": held_out_session,
+                        "progress/completed_model_fits": progress_state["completed_model_fits"],
+                        "progress/total_model_fits": total_model_fits,
+                    }
+                )
+            continue
         print(
             f"[fold] dataset={args.dataset_key} variant={variant} fold_index={fold_idx}/{total_outer_folds} "
             f"held_out_session={held_out_session} train_rows={len(train_idx)} test_rows={len(test_idx)}",
@@ -1041,6 +1181,29 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
             X_test_features.to_csv(fold_data_dir / f"{args.dataset_key}_X_test_reference.csv", index=False)
             y_test_labels.to_frame(name=target_name).to_csv(fold_data_dir / f"{args.dataset_key}_y_test_reference.csv", index=False)
             synthetic_meta_df.to_csv(fold_data_dir / f"{args.dataset_key}_synthetic_metadata.csv", index=False)
+
+        save_fold_checkpoint(
+            checkpoint_dir=checkpoint_dir,
+            dataset_key=args.dataset_key,
+            fold_label=fold_label,
+            held_out_session=held_out_session,
+            baseline_results=baseline_results,
+            augmented_results=augmented_results,
+            baseline_reports=baseline_reports,
+            augmented_reports=augmented_reports,
+            baseline_confs=baseline_confs,
+            augmented_confs=augmented_confs,
+            baseline_confs_norm=baseline_confs_norm,
+            augmented_confs_norm=augmented_confs_norm,
+            baseline_binary=baseline_binary,
+            augmented_binary=augmented_binary,
+            baseline_predictions=baseline_predictions,
+            augmented_predictions=augmented_predictions,
+            baseline_saved=baseline_saved,
+            augmented_saved=augmented_saved,
+            augmentation_summary_df=augmentation_summary_df,
+            fold_stage_counts=[fold_stage_counts, fold_aug_counts],
+        )
 
     fold_metrics_df = pd.concat(fold_metric_frames, ignore_index=True)
     classification_reports_df = pd.concat(report_frames, ignore_index=True)

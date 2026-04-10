@@ -19,6 +19,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from feature_augmentation.common import resolve_augmentation_artifact_dir  # noqa: E402
 from feature_augmentation.mean_std_oversampling.run_augmentation_experiment import (  # noqa: E402
+    ALL_MODEL_NAMES,
     environment_snapshot,
 )
 from feature_selection.common import (  # noqa: E402
@@ -66,6 +67,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action=argparse.BooleanOptionalAction,
         default=True,
     )
+    parser.add_argument("--models", nargs="*", default=list(ALL_MODEL_NAMES), choices=ALL_MODEL_NAMES)
     return parser.parse_args(argv)
 
 
@@ -156,6 +158,8 @@ def main(argv: list[str] | None = None) -> int:
                 args.wandb_project,
                 "--excluded-emotions",
                 *args.excluded_emotions,
+                "--models",
+                *args.models,
             ]
             if args.use_variant_dirs:
                 cmd.append("--use-variant-dirs")
