@@ -1,0 +1,41 @@
+{
+  "alpha": 1.0,
+  "artifacts_root": "feature_family_selection/genetic_algorithm/artifacts",
+  "beta": 0.05,
+  "crossover_rate": 0.9,
+  "elitism_k": 2,
+  "evaluator_model": "random_forest",
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "families": [
+    "mfcc_raw",
+    "prosody_energy",
+    "prosody_pitch",
+    "ssl_hubert",
+    "ssl_wav2vec",
+    "bert",
+    "tfidf",
+    "tonality",
+    "rhythm_pauses",
+    "representations"
+  ],
+  "generations": 2,
+  "include_xxx": false,
+  "min_selected_families": 1,
+  "mutation_rate": null,
+  "population_size": 6,
+  "random_state": 42,
+  "repo_root": "/cluster/home/bekadb/Speech-Emotion-Recognition",
+  "report_to": "none",
+  "require_agreement": true,
+  "resume": true,
+  "run_name": "ga_smoke_local",
+  "test_size": 0.2,
+  "tournament_size": 2,
+  "wandb_entity": null,
+  "wandb_project": "ser-feature-family-selection"
+}

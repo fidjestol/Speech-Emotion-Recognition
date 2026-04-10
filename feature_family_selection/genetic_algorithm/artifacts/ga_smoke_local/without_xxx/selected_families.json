@@ -1,0 +1,10 @@
+{
+  "selected_families": [
+    "mfcc_raw",
+    "prosody_energy",
+    "ssl_hubert",
+    "ssl_wav2vec",
+    "bert",
+    "tonality"
+  ]
+}

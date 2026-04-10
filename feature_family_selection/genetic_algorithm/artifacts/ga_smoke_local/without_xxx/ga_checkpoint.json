@@ -1,0 +1,76 @@
+{
+  "best_result": {
+    "accuracy": 0.5386178861788617,
+    "chromosome": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0
+    ],
+    "chromosome_key": "1101110100",
+    "f1_macro": 0.46890553812059843,
+    "f1_weighted": 0.5141866242906701,
+    "fitness": 0.4389055381205984,
+    "num_features": 5095,
+    "num_rows": 7380,
+    "num_selected_families": 6,
+    "num_test_rows": 1476,
+    "num_train_rows": 5904,
+    "selected_families": [
+      "mfcc_raw",
+      "prosody_energy",
+      "ssl_hubert",
+      "ssl_wav2vec",
+      "bert",
+      "tonality"
+    ]
+  },
+  "families": [
+    "mfcc_raw",
+    "prosody_energy",
+    "prosody_pitch",
+    "ssl_hubert",
+    "ssl_wav2vec",
+    "bert",
+    "tfidf",
+    "tonality",
+    "rhythm_pauses",
+    "representations"
+  ],
+  "history": [
+    {
+      "avg_fitness": 0.37033571685805583,
+      "avg_macro_f1": 0.38283571685805584,
+      "avg_selected_families": 2.5,
+      "best_accuracy": 0.49796747967479676,
+      "best_chromosome": "1000000000",
+      "best_fitness": 0.4294134548227305,
+      "best_macro_f1": 0.4344134548227305,
+      "best_selected_families": "mfcc_raw",
+      "generation": 0,
+      "unique_chromosomes": 6,
+      "worst_fitness": 0.29191122562565547
+    },
+    {
+      "avg_fitness": 0.4229879780312065,
+      "avg_macro_f1": 0.44215464469787324,
+      "avg_selected_families": 3.8333333333333335,
+      "best_accuracy": 0.5386178861788617,
+      "best_chromosome": "1101110100",
+      "best_fitness": 0.4389055381205984,
+      "best_macro_f1": 0.46890553812059843,
+      "best_selected_families": "mfcc_raw,prosody_energy,ssl_hubert,ssl_wav2vec,bert,tonality",
+      "generation": 1,
+      "unique_chromosomes": 4,
+      "worst_fitness": 0.3907634097698258
+    }
+  ],
+  "next_generation": 2,
+  "variant": "without_xxx"
+}

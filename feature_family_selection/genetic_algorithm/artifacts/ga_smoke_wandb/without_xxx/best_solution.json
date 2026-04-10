@@ -1,0 +1,27 @@
+{
+  "accuracy": 0.5006954102920723,
+  "chromosome": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "chromosome_key": "0000001000",
+  "f1_macro": 0.4903725090163969,
+  "f1_weighted": 0.4994644500866593,
+  "fitness": 0.4853725090163969,
+  "num_features": 10480,
+  "num_rows": 3595,
+  "num_selected_families": 1,
+  "num_test_rows": 719,
+  "num_train_rows": 2876,
+  "selected_families": [
+    "tfidf"
+  ]
+}
