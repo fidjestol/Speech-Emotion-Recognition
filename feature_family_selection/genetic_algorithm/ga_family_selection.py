@@ -4,9 +4,10 @@ import argparse
 import csv
 import pickle
 import random
+import sys
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-import sys
 from typing import Any, Sequence
 
 import numpy as np
@@ -285,10 +286,14 @@ def log_generation_to_wandb(
     results: Sequence[CandidateResult],
     best_result: CandidateResult,
     args: argparse.Namespace,
+    generation_runtime_seconds: float,
+    total_runtime_seconds: float,
 ) -> None:
     fitness_values = np.array([result.fitness for result in results], dtype=float)
     macro_values = np.array([result.f1_macro for result in results], dtype=float)
     selected_counts = np.array([result.num_selected_families for result in results], dtype=float)
+    unique_chromosomes = len({result.chromosome_key for result in results})
+    duplicate_fraction = 1.0 - (unique_chromosomes / max(1, len(results)))
     payload: dict[str, Any] = {
         "generation": generation,
         "generation/best_fitness": float(fitness_values.max()),
@@ -298,7 +303,10 @@ def log_generation_to_wandb(
         "generation/avg_macro_f1": float(macro_values.mean()),
         "generation/avg_selected_families": float(selected_counts.mean()),
         "generation/best_selected_families": int(best_result.num_selected_families),
-        "generation/unique_chromosomes": len({result.chromosome_key for result in results}),
+        "generation/unique_chromosomes": unique_chromosomes,
+        "generation/duplicate_fraction": float(duplicate_fraction),
+        "runtime/generation_seconds": float(generation_runtime_seconds),
+        "runtime/total_elapsed_seconds": float(total_runtime_seconds),
     }
     for family in args.families:
         payload[f"best_family_selected/{family}"] = 1 if family in best_result.selected_families else 0
@@ -333,6 +341,7 @@ def main() -> None:
     np.random.seed(args.random_state)
     rng = random
     mutation_rate = args.mutation_rate if args.mutation_rate is not None else (1.0 / max(1, len(args.families)))
+    run_start_time = time.perf_counter()
 
     run = init_wandb(args, output_dir)
     checkpoint = load_checkpoint(output_dir) if args.resume else None
@@ -354,11 +363,16 @@ def main() -> None:
         start_generation = 0
 
     for generation in range(start_generation, args.generations):
+        generation_start_time = time.perf_counter()
         results = evaluate_population(population, args=args, eval_cache=eval_cache)
         scores = [result.fitness for result in results]
         generation_best = max(results, key=lambda result: result.fitness)
         if generation_best.fitness >= best_result.fitness:
             best_result = generation_best
+        generation_runtime_seconds = time.perf_counter() - generation_start_time
+        total_runtime_seconds = time.perf_counter() - run_start_time
+        unique_chromosomes = len({result.chromosome_key for result in results})
+        duplicate_fraction = 1.0 - (unique_chromosomes / max(1, len(results)))
 
         history_row = {
             "generation": generation,
@@ -369,18 +383,30 @@ def main() -> None:
             "avg_macro_f1": float(np.mean([result.f1_macro for result in results])),
             "best_accuracy": generation_best.accuracy,
             "avg_selected_families": float(np.mean([result.num_selected_families for result in results])),
-            "unique_chromosomes": len({result.chromosome_key for result in results}),
+            "unique_chromosomes": unique_chromosomes,
+            "duplicate_fraction": float(duplicate_fraction),
             "best_chromosome": generation_best.chromosome_key,
             "best_selected_families": ",".join(generation_best.selected_families),
+            "generation_runtime_seconds": float(generation_runtime_seconds),
+            "total_elapsed_seconds": float(total_runtime_seconds),
         }
         history.append(history_row)
 
         print(
             f"[generation] index={generation + 1}/{args.generations} best_fitness={generation_best.fitness:.4f} "
-            f"best_macro_f1={generation_best.f1_macro:.4f} selected={generation_best.selected_families}"
+            f"best_macro_f1={generation_best.f1_macro:.4f} selected={generation_best.selected_families} "
+            f"duplicate_fraction={duplicate_fraction:.3f} generation_seconds={generation_runtime_seconds:.2f} "
+            f"total_seconds={total_runtime_seconds:.2f}"
         )
         if run is not None:
-            log_generation_to_wandb(generation, results, generation_best, args)
+            log_generation_to_wandb(
+                generation,
+                results,
+                generation_best,
+                args,
+                generation_runtime_seconds=generation_runtime_seconds,
+                total_runtime_seconds=total_runtime_seconds,
+            )
 
         ranked = sorted(results, key=lambda result: result.fitness, reverse=True)
         next_population = [list(candidate.chromosome) for candidate in ranked[: args.elitism_k]]
@@ -413,6 +439,7 @@ def main() -> None:
         wandb.summary["best_macro_f1"] = best_result.f1_macro
         wandb.summary["best_accuracy"] = best_result.accuracy
         wandb.summary["selected_families"] = best_result.selected_families
+        wandb.summary["total_elapsed_seconds"] = time.perf_counter() - run_start_time
         wandb.finish()
 
     print(

@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=ga-family
 #SBATCH --partition=CPUQ
-#SBATCH --account=ie-idi
+#SBATCH --account=share-ie-idi
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --time=12:00:00
+#SBATCH --time=7-00:00:00
 #SBATCH --output=logs/slurm-ga-family-%j.out
 #SBATCH --error=logs/slurm-ga-family-%j.err
 
