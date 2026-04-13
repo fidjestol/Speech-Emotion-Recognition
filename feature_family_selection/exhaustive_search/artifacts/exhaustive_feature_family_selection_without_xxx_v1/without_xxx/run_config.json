@@ -1,0 +1,33 @@
+{
+  "alpha": 1.0,
+  "artifacts_root": "feature_family_selection/exhaustive_search/artifacts",
+  "beta": 0.05,
+  "evaluator_model": "random_forest",
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "families": [
+    "mfcc_raw",
+    "prosody_energy",
+    "prosody_pitch",
+    "ssl_hubert",
+    "ssl_wav2vec",
+    "bert",
+    "tfidf",
+    "tonality",
+    "rhythm_pauses",
+    "representations"
+  ],
+  "include_xxx": false,
+  "random_state": 42,
+  "repo_root": "/cluster/home/bekadb/Speech-Emotion-Recognition",
+  "report_to": "wandb",
+  "require_agreement": true,
+  "run_name": "exhaustive_feature_family_selection_without_xxx_v1",
+  "test_size": 0.2,
+  "wandb_entity": null,
+  "wandb_project": "ser-feature-family-selection"
+}

@@ -19,7 +19,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn.base import BaseEstimator, ClassifierMixin, clone
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.ensemble import RandomForestClassifier, StackingClassifier, VotingClassifier
+from sklearn.ensemble import StackingClassifier, VotingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -32,7 +32,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import LeaveOneGroupOut, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, SVC
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -57,7 +57,6 @@ from feature_selection.common import (  # noqa: E402
     machine_name_from_env,
     resolve_cpu_parallel_config,
     resolve_feature_source,
-    resolve_random_forest_jobs,
     variant_name,
 )
 
@@ -67,7 +66,7 @@ sns.set_theme(style="whitegrid")
 ALL_MODEL_NAMES = [
     "logreg",
     "linear_svc_cal",
-    "random_forest",
+    "polynomial_svc_cal",
     "xgboost",
     "catboost",
     "soft_voting",
@@ -122,6 +121,9 @@ class ExperimentArgs:
     xgb_max_depth: int
     xgb_subsample: float
     xgb_colsample_bytree: float
+    poly_degree: int
+    poly_coef0: float
+    poly_c: float
 
 
 class EncodedXGBClassifier(ClassifierMixin, BaseEstimator):
@@ -315,13 +317,15 @@ def build_model_builders(
     *,
     random_state: int,
     model_parallel_jobs: int,
-    random_forest_jobs: int,
     enable_gpu_models: bool,
     xgb_estimators: int,
     xgb_learning_rate: float,
     xgb_max_depth: int,
     xgb_subsample: float,
     xgb_colsample_bytree: float,
+    poly_degree: int,
+    poly_coef0: float,
+    poly_c: float,
 ) -> dict[str, ModelBuilder]:
     probabilistic_builders: dict[str, ModelBuilder] = {
         "logreg": lambda: Pipeline(
@@ -340,11 +344,27 @@ def build_model_builders(
             cv=3,
             method="sigmoid",
         ),
-        "random_forest": lambda: RandomForestClassifier(
-            n_estimators=500,
-            class_weight="balanced_subsample",
-            random_state=random_state,
-            n_jobs=random_forest_jobs,
+        "polynomial_svc_cal": lambda: CalibratedPipelineClassifier(
+            Pipeline(
+                [
+                    ("scaler", StandardScaler()),
+                    (
+                        "clf",
+                        SVC(
+                            kernel="poly",
+                            degree=poly_degree,
+                            coef0=poly_coef0,
+                            C=poly_c,
+                            gamma="scale",
+                            class_weight="balanced",
+                            random_state=random_state,
+                            cache_size=1024,
+                        ),
+                    ),
+                ]
+            ),
+            cv=3,
+            method="sigmoid",
         ),
         "xgboost": lambda: EncodedXGBClassifier(
             n_estimators=xgb_estimators,
@@ -371,11 +391,12 @@ def build_model_builders(
             estimators=[
                 ("logreg", probabilistic_builders["logreg"]()),
                 ("linear_svc_cal", probabilistic_builders["linear_svc_cal"]()),
+                ("polynomial_svc_cal", probabilistic_builders["polynomial_svc_cal"]()),
                 ("xgboost", probabilistic_builders["xgboost"]()),
                 ("catboost", probabilistic_builders["catboost"]()),
             ],
             voting="soft",
-            weights=[1.0, 1.0, 2.0, 2.0],
+            weights=[1.0, 1.0, 1.0, 2.0, 2.0],
             n_jobs=None,
         )
 
@@ -384,6 +405,7 @@ def build_model_builders(
             estimators=[
                 ("logreg", probabilistic_builders["logreg"]()),
                 ("linear_svc_cal", probabilistic_builders["linear_svc_cal"]()),
+                ("polynomial_svc_cal", probabilistic_builders["polynomial_svc_cal"]()),
                 ("xgboost", probabilistic_builders["xgboost"]()),
                 ("catboost", probabilistic_builders["catboost"]()),
             ],
@@ -630,6 +652,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--xgb-max-depth", type=int, default=6)
     parser.add_argument("--xgb-subsample", type=float, default=0.9)
     parser.add_argument("--xgb-colsample-bytree", type=float, default=0.8)
+    parser.add_argument("--poly-degree", type=int, default=3)
+    parser.add_argument("--poly-coef0", type=float, default=1.0)
+    parser.add_argument("--poly-c", type=float, default=1.0)
     return parser
 
 
@@ -663,6 +688,9 @@ def parse_args(argv: list[str] | None = None) -> ExperimentArgs:
         xgb_max_depth=int(args.xgb_max_depth),
         xgb_subsample=float(args.xgb_subsample),
         xgb_colsample_bytree=float(args.xgb_colsample_bytree),
+        poly_degree=int(args.poly_degree),
+        poly_coef0=float(args.poly_coef0),
+        poly_c=float(args.poly_c),
     )
 
 
@@ -863,7 +891,6 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
     machine_name = machine_name_from_env()
     variant = variant_name(args.include_xxx)
     model_parallel_jobs, model_parallel_mode = resolve_cpu_parallel_config(machine_name)
-    random_forest_jobs = resolve_random_forest_jobs(machine_name)
     source_path = resolve_feature_source(REPO_ROOT, args.dataset_key)
     out_dir = resolve_augmentation_artifact_dir(
         REPO_ROOT,
@@ -886,7 +913,6 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
             "variant_name": variant,
             "model_parallel_jobs": model_parallel_jobs,
             "model_parallel_mode": model_parallel_mode,
-            "random_forest_jobs": random_forest_jobs,
         }
     )
     write_json(out_dir / "environment_summary.json", env_summary)
@@ -960,13 +986,15 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
     model_builders = build_model_builders(
         random_state=args.random_state,
         model_parallel_jobs=model_parallel_jobs,
-        random_forest_jobs=random_forest_jobs,
         enable_gpu_models=args.enable_gpu_models,
         xgb_estimators=args.xgb_estimators,
         xgb_learning_rate=args.xgb_learning_rate,
         xgb_max_depth=args.xgb_max_depth,
         xgb_subsample=args.xgb_subsample,
         xgb_colsample_bytree=args.xgb_colsample_bytree,
+        poly_degree=args.poly_degree,
+        poly_coef0=args.poly_coef0,
+        poly_c=args.poly_c,
     )
     requested_models = list(dict.fromkeys(args.models))
     model_builders = {name: model_builders[name] for name in requested_models}
@@ -1352,7 +1380,6 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
         "n_folds": int(groups.nunique()),
         "model_parallel_jobs": model_parallel_jobs,
         "model_parallel_mode": model_parallel_mode,
-        "random_forest_jobs": random_forest_jobs,
         "augmentation_method": DEFAULT_AUGMENTATION_METHOD,
         "augmentation_target_per_class": args.target_per_class,
         "augmentation_group_size": args.group_size,

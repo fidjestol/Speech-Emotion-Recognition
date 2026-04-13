@@ -286,6 +286,8 @@ def log_generation_to_wandb(
     results: Sequence[CandidateResult],
     best_result: CandidateResult,
     args: argparse.Namespace,
+    search_space_size: int,
+    evaluated_subset_count: int,
     generation_runtime_seconds: float,
     total_runtime_seconds: float,
 ) -> None:
@@ -294,6 +296,7 @@ def log_generation_to_wandb(
     selected_counts = np.array([result.num_selected_families for result in results], dtype=float)
     unique_chromosomes = len({result.chromosome_key for result in results})
     duplicate_fraction = 1.0 - (unique_chromosomes / max(1, len(results)))
+    coverage_fraction = evaluated_subset_count / max(1, search_space_size)
     payload: dict[str, Any] = {
         "generation": generation,
         "generation/best_fitness": float(fitness_values.max()),
@@ -305,6 +308,9 @@ def log_generation_to_wandb(
         "generation/best_selected_families": int(best_result.num_selected_families),
         "generation/unique_chromosomes": unique_chromosomes,
         "generation/duplicate_fraction": float(duplicate_fraction),
+        "search/evaluated_subsets": int(evaluated_subset_count),
+        "search/coverage_fraction": float(coverage_fraction),
+        "search/coverage_percent": float(100.0 * coverage_fraction),
         "runtime/generation_seconds": float(generation_runtime_seconds),
         "runtime/total_elapsed_seconds": float(total_runtime_seconds),
     }
@@ -342,6 +348,7 @@ def main() -> None:
     rng = random
     mutation_rate = args.mutation_rate if args.mutation_rate is not None else (1.0 / max(1, len(args.families)))
     run_start_time = time.perf_counter()
+    search_space_size = (2 ** len(args.families)) - 1
 
     run = init_wandb(args, output_dir)
     checkpoint = load_checkpoint(output_dir) if args.resume else None
@@ -373,6 +380,8 @@ def main() -> None:
         total_runtime_seconds = time.perf_counter() - run_start_time
         unique_chromosomes = len({result.chromosome_key for result in results})
         duplicate_fraction = 1.0 - (unique_chromosomes / max(1, len(results)))
+        evaluated_subset_count = len(eval_cache)
+        coverage_fraction = evaluated_subset_count / max(1, search_space_size)
 
         history_row = {
             "generation": generation,
@@ -385,6 +394,9 @@ def main() -> None:
             "avg_selected_families": float(np.mean([result.num_selected_families for result in results])),
             "unique_chromosomes": unique_chromosomes,
             "duplicate_fraction": float(duplicate_fraction),
+            "evaluated_subsets": int(evaluated_subset_count),
+            "coverage_fraction": float(coverage_fraction),
+            "coverage_percent": float(100.0 * coverage_fraction),
             "best_chromosome": generation_best.chromosome_key,
             "best_selected_families": ",".join(generation_best.selected_families),
             "generation_runtime_seconds": float(generation_runtime_seconds),
@@ -404,6 +416,8 @@ def main() -> None:
                 results,
                 generation_best,
                 args,
+                search_space_size=search_space_size,
+                evaluated_subset_count=evaluated_subset_count,
                 generation_runtime_seconds=generation_runtime_seconds,
                 total_runtime_seconds=total_runtime_seconds,
             )

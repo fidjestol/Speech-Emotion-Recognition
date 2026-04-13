@@ -44,7 +44,7 @@ SKIP_EXISTING="${SKIP_EXISTING:-0}"
 SAVE_AUGMENTED_MATRICES="${SAVE_AUGMENTED_MATRICES:-0}"
 SAVE_MODELS="${SAVE_MODELS:-1}"
 EXCLUDED_EMOTIONS="${EXCLUDED_EMOTIONS:-sur fea oth dis}"
-MODELS="${MODELS:-logreg linear_svc_cal random_forest xgboost catboost soft_voting stacking}"
+MODELS="${MODELS:-logreg linear_svc_cal polynomial_svc_cal xgboost catboost soft_voting stacking}"
 
 echo "Start: $(date)"
 echo "Host: $(hostname)"
