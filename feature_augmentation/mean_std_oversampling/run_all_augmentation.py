@@ -28,6 +28,7 @@ from feature_selection.common import (  # noqa: E402
     resolve_feature_source,
     variant_name,
 )
+from utils.wandb_multi import init_multi_wandb_run
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -56,7 +57,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--wandb-project", default="ser-feature-augmentation")
     parser.add_argument("--wandb-entity")
     parser.add_argument("--wandb-group")
-    parser.add_argument("--skip-existing", action="store_true")
+    parser.add_argument(
+        "--skip-existing",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Skip dataset/variant outputs that already have run metadata. Default is to resume existing runs.",
+    )
     parser.add_argument(
         "--save-augmented-matrices",
         action=argparse.BooleanOptionalAction,
@@ -75,6 +81,69 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
+
+
+def read_json(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def runner_wandb_state_path(run_root: Path) -> Path:
+    return run_root / "runner_wandb_run.json"
+
+
+def load_saved_runner_wandb_id(run_root: Path) -> str | None:
+    path = runner_wandb_state_path(run_root)
+    if not path.exists():
+        return None
+    try:
+        payload = read_json(path)
+    except Exception:
+        return None
+    run_id = str(payload.get("id", "")).strip()
+    return run_id or None
+
+
+def save_runner_wandb_state(run_root: Path, run: Any) -> None:
+    write_json(
+        runner_wandb_state_path(run_root),
+        {
+            "id": str(getattr(run, "id", "")),
+            "name": str(getattr(run, "name", "")),
+            "url": getattr(run, "url", None),
+            "project": getattr(run, "project", None),
+            "entity": getattr(run, "entity", None),
+        },
+    )
+
+
+def persist_runner_state(run_root: Path, results: list[dict[str, Any]], failures: list[dict[str, Any]]) -> tuple[pd.DataFrame, pd.DataFrame]:
+    results_df = pd.DataFrame(results)
+    failures_df = pd.DataFrame(failures)
+    results_df.to_csv(run_root / "run_manifest.csv", index=False)
+    write_json(run_root / "run_manifest.json", {"results": results})
+    failures_df.to_csv(run_root / "failed_runs.csv", index=False)
+    write_json(run_root / "failed_runs.json", {"failures": failures})
+
+    if not results_df.empty:
+        summary_columns = [
+            "dataset_key",
+            "variant",
+            "status",
+            "seconds",
+            "best_baseline_model",
+            "best_augmented_model",
+            "baseline_best_accuracy",
+            "augmented_best_accuracy",
+            "baseline_best_f1_weighted",
+            "augmented_best_f1_weighted",
+            "baseline_best_f1_macro",
+            "augmented_best_f1_macro",
+        ]
+        available_columns = [column for column in summary_columns if column in results_df.columns]
+        results_df[available_columns].to_csv(run_root / "results_summary.csv", index=False)
+
+    return results_df, failures_df
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -97,17 +166,21 @@ def main(argv: list[str] | None = None) -> int:
 
     runner_wandb = None
     if "wandb" in {part.strip() for part in args.report_to.split(",") if part.strip()}:
-        import wandb
-
-        runner_wandb = wandb.init(
-            project=args.wandb_project,
-            entity=args.wandb_entity,
-            group=args.wandb_group or args.run_name,
-            job_type="feature_augmentation_runner",
-            name=f"{args.run_name}_runner",
-            config=vars(args),
-            reinit=True,
-        )
+        init_kwargs = {
+            "project": args.wandb_project,
+            "entity": args.wandb_entity,
+            "group": args.wandb_group or args.run_name,
+            "job_type": "feature_augmentation_runner",
+            "name": f"{args.run_name}_runner",
+            "config": vars(args),
+            "reinit": True,
+        }
+        saved_run_id = load_saved_runner_wandb_id(run_root)
+        if saved_run_id is not None:
+            init_kwargs["id"] = saved_run_id
+            init_kwargs["resume"] = "allow"
+        runner_wandb = init_multi_wandb_run(**init_kwargs)
+        save_runner_wandb_state(run_root, runner_wandb)
 
     results: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
@@ -135,6 +208,7 @@ def main(argv: list[str] | None = None) -> int:
                     "error": None,
                 }
                 results.append(row)
+                persist_runner_state(run_root, results, failures)
                 continue
 
             cmd = [
@@ -224,6 +298,7 @@ def main(argv: list[str] | None = None) -> int:
                         "traceback": payload.get("traceback", stderr[-8000:]),
                     }
                     failures.append(failure_payload)
+                persist_runner_state(run_root, results, failures)
                 if runner_wandb is not None:
                     import wandb
 
@@ -249,31 +324,9 @@ def main(argv: list[str] | None = None) -> int:
                 }
                 results.append(failure_payload)
                 failures.append(failure_payload)
+                persist_runner_state(run_root, results, failures)
 
-    results_df = pd.DataFrame(results)
-    failures_df = pd.DataFrame(failures)
-    results_df.to_csv(run_root / "run_manifest.csv", index=False)
-    write_json(run_root / "run_manifest.json", {"results": results})
-    failures_df.to_csv(run_root / "failed_runs.csv", index=False)
-    write_json(run_root / "failed_runs.json", {"failures": failures})
-
-    if not results_df.empty:
-        summary_columns = [
-            "dataset_key",
-            "variant",
-            "status",
-            "seconds",
-            "best_baseline_model",
-            "best_augmented_model",
-            "baseline_best_accuracy",
-            "augmented_best_accuracy",
-            "baseline_best_f1_weighted",
-            "augmented_best_f1_weighted",
-            "baseline_best_f1_macro",
-            "augmented_best_f1_macro",
-        ]
-        available_columns = [column for column in summary_columns if column in results_df.columns]
-        results_df[available_columns].to_csv(run_root / "results_summary.csv", index=False)
+    results_df, failures_df = persist_runner_state(run_root, results, failures)
 
     latest_run_path = REPO_ROOT / "feature_augmentation" / "mean_std_oversampling" / "artifacts" / "latest_run.txt"
     latest_run_path.write_text(str(run_root), encoding="utf-8")

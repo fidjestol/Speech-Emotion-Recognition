@@ -30,6 +30,7 @@ from feature_family_selection.genetic_algorithm.common import (
     serializable_history,
 )
 from feature_family_selection.genetic_algorithm.evaluate_family_subset import evaluate_family_subset
+from utils.wandb_multi import init_multi_wandb_run
 
 
 @dataclass
@@ -282,6 +283,7 @@ def write_best_outputs(
 
 
 def log_generation_to_wandb(
+    run,
     generation: int,
     results: Sequence[CandidateResult],
     best_result: CandidateResult,
@@ -316,13 +318,13 @@ def log_generation_to_wandb(
     }
     for family in args.families:
         payload[f"best_family_selected/{family}"] = 1 if family in best_result.selected_families else 0
-    wandb.log(payload, step=generation)
+    run.log(payload, step=generation)
 
 
 def init_wandb(args: argparse.Namespace, output_dir: Path):
     if args.report_to != "wandb":
         return None
-    return wandb.init(
+    return init_multi_wandb_run(
         project=args.wandb_project,
         entity=args.wandb_entity,
         name=f"{args.run_name}_{variant_name(args.include_xxx)}",
@@ -412,6 +414,7 @@ def main() -> None:
         )
         if run is not None:
             log_generation_to_wandb(
+                run,
                 generation,
                 results,
                 generation_best,
@@ -448,13 +451,13 @@ def main() -> None:
 
     if run is not None:
         history_df = pd.DataFrame(history)
-        wandb.log({"history_table": wandb.Table(dataframe=history_df)})
-        wandb.summary["best_fitness"] = best_result.fitness
-        wandb.summary["best_macro_f1"] = best_result.f1_macro
-        wandb.summary["best_accuracy"] = best_result.accuracy
-        wandb.summary["selected_families"] = best_result.selected_families
-        wandb.summary["total_elapsed_seconds"] = time.perf_counter() - run_start_time
-        wandb.finish()
+        run.log({"history_table": wandb.Table(dataframe=history_df)})
+        run.summary["best_fitness"] = best_result.fitness
+        run.summary["best_macro_f1"] = best_result.f1_macro
+        run.summary["best_accuracy"] = best_result.accuracy
+        run.summary["selected_families"] = best_result.selected_families
+        run.summary["total_elapsed_seconds"] = time.perf_counter() - run_start_time
+        run.finish()
 
     print(
         f"[done] best_fitness={best_result.fitness:.4f} best_macro_f1={best_result.f1_macro:.4f} "

@@ -246,6 +246,10 @@ Main scripts:
 - CPU path: [scripts/idun_feature_augmentation.sbatch](/cluster/home/bekadb/Speech-Emotion-Recognition/scripts/idun_feature_augmentation.sbatch)
 - GPU path: [scripts/idun_feature_augmentation_gpu.sbatch](/cluster/home/bekadb/Speech-Emotion-Recognition/scripts/idun_feature_augmentation_gpu.sbatch)
 
+Current walltime defaults:
+- CPU augmentation: `7-00:00:00`
+- GPU augmentation: `7-00:00:00`
+
 Main runner:
 - [run_all_augmentation.py](/cluster/home/bekadb/Speech-Emotion-Recognition/feature_augmentation/mean_std_oversampling/run_all_augmentation.py)
 
@@ -331,6 +335,12 @@ The runner writes:
 - `failed_runs.csv`
 - `failed_runs.json`
 - `environment_summary.json`
+
+Resume behavior:
+- rerunning the same `RUN_NAME` now skips dataset/variant outputs that already finished
+- per-fold checkpoints allow completed folds to be reused
+- saved model files are reused when resuming partial folds or final-model training
+- W&B run ids are persisted so resumed jobs continue logging to the same runner and dataset runs
 
 Per dataset/variant:
 - environment summary

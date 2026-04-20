@@ -59,6 +59,7 @@ from feature_selection.common import (  # noqa: E402
     resolve_feature_source,
     variant_name,
 )
+from utils.wandb_multi import init_multi_wandb_run
 
 plt.style.use("ggplot")
 sns.set_theme(style="whitegrid")
@@ -422,20 +423,26 @@ def build_model_builders(
     }
 
 
-def make_wandb_run(args: ExperimentArgs, *, dataset_key: str, variant: str):
+def make_wandb_run(args: ExperimentArgs, *, dataset_key: str, variant: str, artifact_dir: Path):
     if not args.report_to_wandb:
         return None
-    import wandb
+    init_kwargs = {
+        "project": args.wandb_project,
+        "entity": args.wandb_entity,
+        "group": args.wandb_group or args.run_name,
+        "job_type": "feature_augmentation_dataset",
+        "name": f"{args.run_name}_{variant}_{dataset_key}",
+        "config": asdict(args),
+        "reinit": True,
+    }
+    saved_run_id = load_saved_wandb_run_id(artifact_dir)
+    if saved_run_id is not None:
+        init_kwargs["id"] = saved_run_id
+        init_kwargs["resume"] = "allow"
 
-    return wandb.init(
-        project=args.wandb_project,
-        entity=args.wandb_entity,
-        group=args.wandb_group or args.run_name,
-        job_type="feature_augmentation_dataset",
-        name=f"{args.run_name}_{variant}_{dataset_key}",
-        config=asdict(args),
-        reinit=True,
-    )
+    run = init_multi_wandb_run(**init_kwargs)
+    save_wandb_run_state(artifact_dir, run)
+    return run
 
 
 def save_figure(path: Path, fig) -> None:
@@ -455,13 +462,54 @@ def read_json(path: Path) -> dict[str, Any]:
         return json.load(handle)
 
 
+def wandb_state_path(base_dir: Path) -> Path:
+    return base_dir / "wandb_run.json"
+
+
+def load_saved_wandb_run_id(base_dir: Path) -> str | None:
+    path = wandb_state_path(base_dir)
+    if not path.exists():
+        return None
+    try:
+        payload = read_json(path)
+    except Exception:
+        return None
+    run_id = str(payload.get("id", "")).strip()
+    return run_id or None
+
+
+def save_wandb_run_state(base_dir: Path, run: Any) -> None:
+    write_json(
+        wandb_state_path(base_dir),
+        {
+            "id": str(getattr(run, "id", "")),
+            "name": str(getattr(run, "name", "")),
+            "url": getattr(run, "url", None),
+            "project": getattr(run, "project", None),
+            "entity": getattr(run, "entity", None),
+        },
+    )
+
+
 def save_model(model: Any, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)
 
 
+def load_model(path: Path) -> Any:
+    return joblib.load(path)
+
+
 def checkpoint_dir_for_fold(reports_dir: Path, fold_label: str) -> Path:
     return reports_dir / "fold_checkpoints" / fold_label
+
+
+def fold_model_path(models_dir: Path, stage_name: str, fold_label: str, model_name: str) -> Path:
+    return models_dir / stage_name / fold_label / f"{model_name}.joblib"
+
+
+def final_model_path(model_dir: Path, stage_name: str, model_name: str) -> Path:
+    return model_dir / stage_name / f"{model_name}.joblib"
 
 
 def save_fold_checkpoint(
@@ -718,35 +766,63 @@ def fit_models_for_fold(
     saved_models: list[dict[str, Any]] = []
 
     for model_name, builder in model_builders.items():
-        if progress_hook is not None:
-            progress_hook(
-                {
-                    "event": "model_start",
-                    "stage": stage_name,
-                    "fold": fold_label,
-                    "held_out_session": held_out_session,
-                    "model": model_name,
-                }
-            )
-        model = builder()
-        started = time.perf_counter()
-        model.fit(X_train_eval, y_train_eval.astype(str))
-        elapsed = time.perf_counter() - started
-        if progress_hook is not None:
-            progress_hook(
-                {
-                    "event": "model_complete",
-                    "stage": stage_name,
-                    "fold": fold_label,
-                    "held_out_session": held_out_session,
-                    "model": model_name,
-                    "runtime_seconds": elapsed,
-                }
-            )
+        model_path = fold_model_path(models_dir, stage_name, fold_label, model_name)
+        resumed_from_disk = False
+        elapsed = float("nan")
+
+        if save_models_flag and model_path.exists():
+            try:
+                model = load_model(model_path)
+                resumed_from_disk = True
+                if progress_hook is not None:
+                    progress_hook(
+                        {
+                            "event": "model_reused",
+                            "stage": stage_name,
+                            "fold": fold_label,
+                            "held_out_session": held_out_session,
+                            "model": model_name,
+                            "model_path": str(model_path),
+                        }
+                    )
+            except Exception as exc:
+                print(
+                    f"[resume] dataset_model={model_name} fold={fold_label} stage={stage_name} "
+                    f"status=load_failed error={type(exc).__name__}: {exc} -> refit",
+                    flush=True,
+                )
+
+        if not resumed_from_disk:
+            if progress_hook is not None:
+                progress_hook(
+                    {
+                        "event": "model_start",
+                        "stage": stage_name,
+                        "fold": fold_label,
+                        "held_out_session": held_out_session,
+                        "model": model_name,
+                    }
+                )
+            model = builder()
+            started = time.perf_counter()
+            model.fit(X_train_eval, y_train_eval.astype(str))
+            elapsed = time.perf_counter() - started
+            if progress_hook is not None:
+                progress_hook(
+                    {
+                        "event": "model_complete",
+                        "stage": stage_name,
+                        "fold": fold_label,
+                        "held_out_session": held_out_session,
+                        "model": model_name,
+                        "runtime_seconds": elapsed,
+                    }
+                )
+
+            if save_models_flag:
+                save_model(model, model_path)
 
         if save_models_flag:
-            model_path = models_dir / stage_name / fold_label / f"{model_name}.joblib"
-            save_model(model, model_path)
             saved_models.append(
                 {
                     "stage": stage_name,
@@ -754,6 +830,7 @@ def fit_models_for_fold(
                     "held_out_session": held_out_session,
                     "model": model_name,
                     "model_path": str(model_path),
+                    "resumed_from_disk": bool(resumed_from_disk),
                 }
             )
 
@@ -777,6 +854,7 @@ def fit_models_for_fold(
                 "f1_micro": f1_score(y_test_eval, y_pred, average="micro", zero_division=0),
                 "runtime_seconds": elapsed,
                 "n_test_rows": int(len(y_test_eval)),
+                "resumed_from_disk": bool(resumed_from_disk),
             }
         )
 
@@ -845,35 +923,60 @@ def fit_final_models(
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for model_name, builder in model_builders.items():
-        if progress_hook is not None:
-            progress_hook(
-                {
-                    "event": "model_start",
-                    "stage": stage_name,
-                    "fold": "full_data",
-                    "held_out_session": None,
-                    "model": model_name,
-                }
-            )
-        model = builder()
-        started = time.perf_counter()
-        model.fit(X_eval, y_eval.astype(str))
-        elapsed = time.perf_counter() - started
-        if progress_hook is not None:
-            progress_hook(
-                {
-                    "event": "model_complete",
-                    "stage": stage_name,
-                    "fold": "full_data",
-                    "held_out_session": None,
-                    "model": model_name,
-                    "runtime_seconds": elapsed,
-                }
-            )
-        model_path = None
-        if save_models_flag:
-            model_path = model_dir / stage_name / f"{model_name}.joblib"
-            save_model(model, model_path)
+        model_path = final_model_path(model_dir, stage_name, model_name) if save_models_flag else None
+        resumed_from_disk = False
+        elapsed = float("nan")
+
+        if model_path is not None and model_path.exists():
+            try:
+                _ = load_model(model_path)
+                resumed_from_disk = True
+                if progress_hook is not None:
+                    progress_hook(
+                        {
+                            "event": "model_reused",
+                            "stage": stage_name,
+                            "fold": "full_data",
+                            "held_out_session": None,
+                            "model": model_name,
+                            "model_path": str(model_path),
+                        }
+                    )
+            except Exception as exc:
+                print(
+                    f"[resume] final_model={model_name} stage={stage_name} "
+                    f"status=load_failed error={type(exc).__name__}: {exc} -> refit",
+                    flush=True,
+                )
+
+        if not resumed_from_disk:
+            if progress_hook is not None:
+                progress_hook(
+                    {
+                        "event": "model_start",
+                        "stage": stage_name,
+                        "fold": "full_data",
+                        "held_out_session": None,
+                        "model": model_name,
+                    }
+                )
+            model = builder()
+            started = time.perf_counter()
+            model.fit(X_eval, y_eval.astype(str))
+            elapsed = time.perf_counter() - started
+            if progress_hook is not None:
+                progress_hook(
+                    {
+                        "event": "model_complete",
+                        "stage": stage_name,
+                        "fold": "full_data",
+                        "held_out_session": None,
+                        "model": model_name,
+                        "runtime_seconds": elapsed,
+                    }
+                )
+            if model_path is not None:
+                save_model(model, model_path)
         rows.append(
             {
                 "stage": stage_name,
@@ -881,6 +984,7 @@ def fit_final_models(
                 "train_rows": int(len(X_eval)),
                 "runtime_seconds": elapsed,
                 "model_path": str(model_path) if model_path is not None else None,
+                "resumed_from_disk": bool(resumed_from_disk),
             }
         )
     return rows
@@ -976,7 +1080,7 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
         label_name=target_name,
     )
 
-    wandb_run = make_wandb_run(args, dataset_key=args.dataset_key, variant=variant)
+    wandb_run = make_wandb_run(args, dataset_key=args.dataset_key, variant=variant, artifact_dir=out_dir)
     if wandb_run is not None:
         wandb_run.summary["rows_loaded"] = int(len(raw_df))
         wandb_run.summary["rows_model_ready"] = int(rows_after)
@@ -1014,6 +1118,7 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
         model = str(payload.get("model", "unknown"))
         held_out_session = payload.get("held_out_session")
         runtime_seconds = payload.get("runtime_seconds")
+        model_path = payload.get("model_path")
         if event == "model_start":
             print(
                 f"[progress] dataset={args.dataset_key} variant={variant} "
@@ -1039,6 +1144,26 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
                         "progress/current_fold_label": fold,
                         "progress/current_held_out_session": held_out_session if held_out_session is not None else -1,
                         f"runtime/{stage}/{model}": float(runtime_seconds),
+                    }
+                )
+        elif event == "model_reused":
+            progress_state["completed_model_fits"] += 1
+            completed = progress_state["completed_model_fits"]
+            print(
+                f"[progress] dataset={args.dataset_key} variant={variant} "
+                f"fold={fold} held_out_session={held_out_session} stage={stage} model={model} "
+                f"status=resume_reuse model_path={model_path} completed_fits={completed}/{total_model_fits}",
+                flush=True,
+            )
+            if wandb_run is not None:
+                wandb_run.log(
+                    {
+                        "progress/completed_model_fits": completed,
+                        "progress/total_model_fits": total_model_fits,
+                        "progress/current_stage_label": stage,
+                        "progress/current_model_label": model,
+                        "progress/current_fold_label": fold,
+                        "progress/current_held_out_session": held_out_session if held_out_session is not None else -1,
                     }
                 )
 

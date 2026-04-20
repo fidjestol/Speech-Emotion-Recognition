@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=48G
-#SBATCH --time=24:00:00
+#SBATCH --time=7-00:00:00
 #SBATCH --output=logs/slurm-feature-augmentation-%j.out
 #SBATCH --error=logs/slurm-feature-augmentation-%j.err
 
@@ -40,7 +40,7 @@ TARGET_PER_CLASS="${TARGET_PER_CLASS:-10000}"
 GROUP_SIZE="${GROUP_SIZE:-5}"
 USE_NROWS="${USE_NROWS:-}"
 ENABLE_GPU_MODELS="${ENABLE_GPU_MODELS:-0}"
-SKIP_EXISTING="${SKIP_EXISTING:-0}"
+SKIP_EXISTING="${SKIP_EXISTING:-1}"
 SAVE_AUGMENTED_MATRICES="${SAVE_AUGMENTED_MATRICES:-0}"
 SAVE_MODELS="${SAVE_MODELS:-1}"
 EXCLUDED_EMOTIONS="${EXCLUDED_EMOTIONS:-sur fea oth dis}"
@@ -115,6 +115,8 @@ else
 fi
 if [[ "${SKIP_EXISTING}" == "1" ]]; then
   cmd+=(--skip-existing)
+else
+  cmd+=(--no-skip-existing)
 fi
 if [[ "${SAVE_AUGMENTED_MATRICES}" == "1" ]]; then
   cmd+=(--save-augmented-matrices)

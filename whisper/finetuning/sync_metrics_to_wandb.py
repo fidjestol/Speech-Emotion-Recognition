@@ -8,6 +8,8 @@ from typing import Any
 import pandas as pd
 import wandb
 
+from utils.wandb_multi import init_multi_wandb_run
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -88,7 +90,7 @@ def main() -> None:
     run_name = args.name or f"{run_dir.name}-posthoc-metrics"
     tags = [tag.strip() for tag in args.tags.split(",") if tag.strip()]
 
-    wandb_run = wandb.init(
+    wandb_run = init_multi_wandb_run(
         project=args.project,
         entity=args.entity,
         name=run_name,
@@ -105,21 +107,24 @@ def main() -> None:
             wandb_run.summary[key] = value
 
         metrics_table = wandb.Table(dataframe=metrics_df)
-        wandb.log({"posthoc_variant_metrics": metrics_table})
+        wandb_run.log({"posthoc_variant_metrics": metrics_table})
 
-        artifact = wandb.Artifact(f"{run_dir.name}-posthoc-metrics", type="metrics")
-        for rel_path in [
-            "variant_comparison.csv",
-            "variant_comparison.json",
-            "variant_comparison_unweighted.csv",
-            "variant_comparison_unweighted.json",
-        ]:
-            path = run_dir / rel_path
-            if path.exists():
-                artifact.add_file(path, name=rel_path)
-        wandb.log_artifact(artifact)
+        def artifact_factory():
+            artifact = wandb.Artifact(f"{run_dir.name}-posthoc-metrics", type="metrics")
+            for rel_path in [
+                "variant_comparison.csv",
+                "variant_comparison.json",
+                "variant_comparison_unweighted.csv",
+                "variant_comparison_unweighted.json",
+            ]:
+                path = run_dir / rel_path
+                if path.exists():
+                    artifact.add_file(path, name=rel_path)
+            return artifact
+
+        wandb_run.log_artifact(artifact_factory)
     finally:
-        wandb.finish()
+        wandb_run.finish()
 
     print(f"Uploaded post-hoc metrics for: {run_dir}")
     print(f"W&B run name: {run_name}")

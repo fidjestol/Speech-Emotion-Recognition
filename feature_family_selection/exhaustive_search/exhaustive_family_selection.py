@@ -17,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
 from feature_selection.common import DEFAULT_EXCLUDED_EMOTIONS, DEFAULT_REQUIRE_AGREEMENT, variant_name
 from feature_family_selection.genetic_algorithm.common import DEFAULT_FAMILY_KEYS, save_json
 from feature_family_selection.genetic_algorithm.evaluate_family_subset import evaluate_family_subset
+from utils.wandb_multi import init_multi_wandb_run
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,7 +71,7 @@ def init_wandb(args: argparse.Namespace, output_dir: Path):
     if args.report_to != "wandb":
         return None
     total_subsets = (2 ** len(args.families)) - 1
-    return wandb.init(
+    return init_multi_wandb_run(
         project=args.wandb_project,
         entity=args.wandb_entity,
         name=f"{args.run_name}_{variant_name(args.include_xxx)}",
@@ -151,7 +152,7 @@ def main() -> None:
 
         if run is not None:
             coverage_fraction = evaluated_count / total_subsets
-            wandb.log(
+            run.log(
                 {
                     "search/evaluated_subsets": evaluated_count,
                     "search/coverage_fraction": coverage_fraction,
@@ -199,21 +200,21 @@ def main() -> None:
     write_outputs(output_dir, args, results_df, summary_df)
 
     if run is not None:
-        wandb.log(
+        run.log(
             {
                 "results_table": wandb.Table(dataframe=results_df),
                 "subset_size_summary": wandb.Table(dataframe=summary_df),
             }
         )
         best_row = results_df.iloc[0]
-        wandb.summary["best_fitness"] = float(best_row["fitness"])
-        wandb.summary["best_macro_f1"] = float(best_row["f1_macro"])
-        wandb.summary["best_accuracy"] = float(best_row["accuracy"])
-        wandb.summary["selected_families"] = list(best_row["selected_families"])
-        wandb.summary["subset_size"] = int(best_row["subset_size"])
-        wandb.summary["total_subsets"] = total_subsets
-        wandb.summary["total_elapsed_seconds"] = time.perf_counter() - start_time
-        wandb.finish()
+        run.summary["best_fitness"] = float(best_row["fitness"])
+        run.summary["best_macro_f1"] = float(best_row["f1_macro"])
+        run.summary["best_accuracy"] = float(best_row["accuracy"])
+        run.summary["selected_families"] = list(best_row["selected_families"])
+        run.summary["subset_size"] = int(best_row["subset_size"])
+        run.summary["total_subsets"] = total_subsets
+        run.summary["total_elapsed_seconds"] = time.perf_counter() - start_time
+        run.finish()
 
     best_row = results_df.iloc[0]
     print(

@@ -16,6 +16,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from feature_selection.common import variant_name
 from feature_family_selection.genetic_algorithm.common import save_json
+from utils.wandb_multi import init_multi_wandb_run
 
 
 def parse_args() -> argparse.Namespace:
@@ -71,7 +72,7 @@ def artifact_dir(base_dir: Path, run_name: str, include_xxx: bool) -> Path:
 def init_wandb(args: argparse.Namespace, output_dir: Path):
     if args.report_to != "wandb":
         return None
-    return wandb.init(
+    return init_multi_wandb_run(
         project=args.wandb_project,
         entity=args.wandb_entity,
         name=f"{args.run_name}_{variant_name(args.include_xxx)}",
@@ -157,7 +158,7 @@ def main() -> None:
     exhaustive_top_k.to_csv(output_dir / "exhaustive_top_k.csv", index=False)
 
     if run is not None:
-        wandb.log(
+        run.log(
             {
                 "comparison_table": wandb.Table(dataframe=comparison_df),
                 "exhaustive_top_k": wandb.Table(dataframe=exhaustive_top_k),
@@ -169,15 +170,15 @@ def main() -> None:
                 "runtime/total_elapsed_seconds": time.perf_counter() - start_time,
             }
         )
-        wandb.summary["ga_found_optimum"] = bool(comparison_row["ga_found_optimum"])
-        wandb.summary["ga_selected_families"] = ga_selected
-        wandb.summary["exhaustive_selected_families"] = exhaustive_selected
-        wandb.summary["fitness_gap_to_optimum"] = comparison_row["fitness_gap_to_optimum"]
-        wandb.summary["macro_f1_gap_to_optimum"] = comparison_row["macro_f1_gap_to_optimum"]
-        wandb.summary["accuracy_gap_to_optimum"] = comparison_row["accuracy_gap_to_optimum"]
-        wandb.summary["ga_rank_in_exhaustive"] = comparison_row["ga_rank_in_exhaustive"]
-        wandb.summary["total_elapsed_seconds"] = time.perf_counter() - start_time
-        wandb.finish()
+        run.summary["ga_found_optimum"] = bool(comparison_row["ga_found_optimum"])
+        run.summary["ga_selected_families"] = ga_selected
+        run.summary["exhaustive_selected_families"] = exhaustive_selected
+        run.summary["fitness_gap_to_optimum"] = comparison_row["fitness_gap_to_optimum"]
+        run.summary["macro_f1_gap_to_optimum"] = comparison_row["macro_f1_gap_to_optimum"]
+        run.summary["accuracy_gap_to_optimum"] = comparison_row["accuracy_gap_to_optimum"]
+        run.summary["ga_rank_in_exhaustive"] = comparison_row["ga_rank_in_exhaustive"]
+        run.summary["total_elapsed_seconds"] = time.perf_counter() - start_time
+        run.finish()
 
     print(
         f"[done] ga_rank_in_exhaustive={comparison_row['ga_rank_in_exhaustive']} "
