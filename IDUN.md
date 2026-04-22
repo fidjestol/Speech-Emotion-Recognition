@@ -8,6 +8,7 @@ This repo currently has two serious Idun workflows:
 
 - Whisper finetuning on GPU
 - Feature augmentation experiments on CPU or GPU
+- Emotion2Vec sanity/evaluation on GPU
 
 There are also two convenience templates:
 
@@ -37,6 +38,12 @@ Add CUDA when the job needs GPU access:
 
 ```bash
 module load CUDA/12.4.0
+```
+
+Load FFmpeg for Emotion2Vec/FunASR audio decoding:
+
+```bash
+module load FFmpeg/6.0-GCCcore-13.2.0
 ```
 
 ### Main virtual environment
@@ -212,6 +219,39 @@ Latest run marker:
 
 ```bash
 cat whisper/finetuning/artifacts/latest_run.txt
+```
+
+## Emotion2Vec on Idun
+
+Main script:
+- [scripts/idun_emotion2vec.sbatch](/cluster/home/bekadb/Speech-Emotion-Recognition/scripts/idun_emotion2vec.sbatch)
+
+Emotion2Vec/FunASR expects `ffmpeg` on `PATH`. Do not use `dnf install` on Idun; the login node is not yours to administer and `dnf` needs root. Use the cluster module instead:
+
+```bash
+module purge
+module load Python/3.11.5-GCCcore-13.2.0
+module load CUDA/12.4.0
+module load FFmpeg/6.0-GCCcore-13.2.0
+```
+
+If `.venv-idun` does not have FunASR yet, install the user-space Python dependencies:
+
+```bash
+bash scripts/setup_emotion2vec_idun_env.sh
+```
+
+Submit the GPU job:
+
+```bash
+sbatch scripts/idun_emotion2vec.sbatch
+```
+
+For a quick interactive sanity check after loading the modules and activating `.venv-idun`:
+
+```bash
+which ffmpeg
+python Emotion2Vec/Iemocap_evaluation/e2vec_test.py --device cuda:0
 ```
 
 ### Whisper monitoring backends
