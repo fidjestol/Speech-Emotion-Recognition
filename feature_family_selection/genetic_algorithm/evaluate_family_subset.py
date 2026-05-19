@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import LeaveOneGroupOut, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
@@ -33,6 +33,8 @@ class FamilySubsetEvaluation:
     num_rows: int
     num_train_rows: int
     num_test_rows: int
+    validation_mode: str
+    n_folds: int
     selected_families: list[str]
 
     def to_dict(self) -> dict[str, float | int | list[str]]:
@@ -46,6 +48,8 @@ class FamilySubsetEvaluation:
             "num_rows": self.num_rows,
             "num_train_rows": self.num_train_rows,
             "num_test_rows": self.num_test_rows,
+            "validation_mode": self.validation_mode,
+            "n_folds": self.n_folds,
             "selected_families": self.selected_families,
         }
 
@@ -96,6 +100,8 @@ def evaluate_family_subset(
     alpha: float = 1.0,
     beta: float = 0.05,
     family_space_size: int | None = None,
+    validation_mode: str = "stratified",
+    group_column: str = "session",
 ) -> FamilySubsetEvaluation:
     merged = merge_selected_families(
         repo_root,
@@ -106,26 +112,62 @@ def evaluate_family_subset(
     )
     X = merged.drop(columns=[TARGET_COLUMN])
     y = merged[TARGET_COLUMN].astype(str)
+    groups = merged[group_column] if group_column in merged.columns else None
 
     metadata_columns = [col for col in X.columns if "__" not in col]
     X = X.drop(columns=metadata_columns)
     X = X.replace([np.inf, -np.inf], np.nan).fillna(0.0)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=y,
-    )
+    if validation_mode == "stratified":
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=test_size,
+            random_state=random_state,
+            stratify=y,
+        )
+        evaluator = build_evaluator(evaluator_model, random_state=random_state)
+        evaluator.fit(X_train, y_train)
+        y_pred = evaluator.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        f1_macro = f1_score(y_test, y_pred, average="macro", zero_division=0)
+        f1_weighted = f1_score(y_test, y_pred, average="weighted", zero_division=0)
+        num_train_rows = int(X_train.shape[0])
+        num_test_rows = int(X_test.shape[0])
+        n_folds = 1
+    elif validation_mode == "loso":
+        if groups is None:
+            raise KeyError(f"LOSO validation requires group column '{group_column}'.")
+        logo = LeaveOneGroupOut()
+        fold_rows: list[dict[str, float | int]] = []
+        train_sizes: list[int] = []
+        test_sizes: list[int] = []
+        for fold_index, (train_idx, test_idx) in enumerate(logo.split(X, y, groups=groups), start=1):
+            evaluator = build_evaluator(evaluator_model, random_state=random_state + fold_index)
+            X_train = X.iloc[train_idx]
+            X_test = X.iloc[test_idx]
+            y_train = y.iloc[train_idx]
+            y_test = y.iloc[test_idx]
+            evaluator.fit(X_train, y_train)
+            y_pred = evaluator.predict(X_test)
+            fold_rows.append(
+                {
+                    "accuracy": accuracy_score(y_test, y_pred),
+                    "f1_macro": f1_score(y_test, y_pred, average="macro", zero_division=0),
+                    "f1_weighted": f1_score(y_test, y_pred, average="weighted", zero_division=0),
+                }
+            )
+            train_sizes.append(int(X_train.shape[0]))
+            test_sizes.append(int(X_test.shape[0]))
+        accuracy = float(np.mean([row["accuracy"] for row in fold_rows]))
+        f1_macro = float(np.mean([row["f1_macro"] for row in fold_rows]))
+        f1_weighted = float(np.mean([row["f1_weighted"] for row in fold_rows]))
+        num_train_rows = int(round(float(np.mean(train_sizes))))
+        num_test_rows = int(round(float(np.mean(test_sizes))))
+        n_folds = len(fold_rows)
+    else:
+        raise ValueError("validation_mode must be one of: stratified, loso")
 
-    evaluator = build_evaluator(evaluator_model, random_state=random_state)
-    evaluator.fit(X_train, y_train)
-    y_pred = evaluator.predict(X_test)
-
-    accuracy = accuracy_score(y_test, y_pred)
-    f1_macro = f1_score(y_test, y_pred, average="macro", zero_division=0)
-    f1_weighted = f1_score(y_test, y_pred, average="weighted", zero_division=0)
     family_space_size = family_space_size or len(family_keys)
     penalty = beta * (len(family_keys) / max(1, family_space_size))
     fitness = alpha * f1_macro - penalty
@@ -138,7 +180,9 @@ def evaluate_family_subset(
         num_selected_families=len(family_keys),
         num_features=int(X.shape[1]),
         num_rows=int(X.shape[0]),
-        num_train_rows=int(X_train.shape[0]),
-        num_test_rows=int(X_test.shape[0]),
+        num_train_rows=num_train_rows,
+        num_test_rows=num_test_rows,
+        validation_mode=validation_mode,
+        n_folds=n_folds,
         selected_families=list(family_keys),
     )

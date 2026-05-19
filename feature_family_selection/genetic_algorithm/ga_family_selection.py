@@ -46,6 +46,8 @@ class CandidateResult:
     num_rows: int
     num_train_rows: int
     num_test_rows: int
+    validation_mode: str
+    n_folds: int
     selected_families: list[str]
 
     @classmethod
@@ -63,6 +65,8 @@ class CandidateResult:
             num_rows=int(payload["num_rows"]),
             num_train_rows=int(payload["num_train_rows"]),
             num_test_rows=int(payload["num_test_rows"]),
+            validation_mode=str(payload.get("validation_mode", "stratified")),
+            n_folds=int(payload.get("n_folds", 1)),
             selected_families=list(payload["selected_families"]),
         )
 
@@ -87,6 +91,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--alpha", type=float, default=1.0)
     parser.add_argument("--beta", type=float, default=0.05)
     parser.add_argument("--test-size", type=float, default=0.20)
+    parser.add_argument("--validation-mode", choices=["stratified", "loso"], default="stratified")
+    parser.add_argument("--group-column", type=str, default="session")
     parser.add_argument("--random-state", type=int, default=42)
     parser.add_argument(
         "--evaluator-model",
@@ -199,6 +205,8 @@ def evaluate_population(
                 alpha=args.alpha,
                 beta=args.beta,
                 family_space_size=len(args.families),
+                validation_mode=args.validation_mode,
+                group_column=args.group_column,
             ).to_dict()
             eval_cache[key] = evaluation
         results.append(CandidateResult.from_eval(chromosome, eval_cache[key]))
@@ -207,6 +215,22 @@ def evaluate_population(
 
 def checkpoint_paths(output_dir: Path) -> tuple[Path, Path]:
     return output_dir / f"{DEFAULT_CHECKPOINT_BASENAME}.pkl", output_dir / f"{DEFAULT_CHECKPOINT_BASENAME}.json"
+
+
+def checkpoint_signature(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        "families": list(args.families),
+        "include_xxx": bool(args.include_xxx),
+        "require_agreement": bool(args.require_agreement),
+        "excluded_emotions": list(args.excluded_emotions),
+        "evaluator_model": args.evaluator_model,
+        "test_size": float(args.test_size),
+        "alpha": float(args.alpha),
+        "beta": float(args.beta),
+        "validation_mode": args.validation_mode,
+        "group_column": args.group_column,
+        "random_state": int(args.random_state),
+    }
 
 
 def save_checkpoint(
@@ -226,6 +250,7 @@ def save_checkpoint(
         "history": list(history),
         "best_result": asdict(best_result),
         "eval_cache": eval_cache,
+        "checkpoint_signature": checkpoint_signature(args),
         "python_random_state": random.getstate(),
         "numpy_random_state": np.random.get_state(),
     }
@@ -240,6 +265,7 @@ def save_checkpoint(
             "history": serializable_history(history),
             "variant": variant_name(args.include_xxx),
             "families": list(args.families),
+            "checkpoint_signature": checkpoint_signature(args),
         },
     )
 
@@ -355,6 +381,14 @@ def main() -> None:
     run = init_wandb(args, output_dir)
     checkpoint = load_checkpoint(output_dir) if args.resume else None
     if checkpoint:
+        saved_signature = checkpoint.get("checkpoint_signature")
+        current_signature = checkpoint_signature(args)
+        if saved_signature != current_signature:
+            raise RuntimeError(
+                "Checkpoint configuration differs from the current run. "
+                "Use a new RUN_NAME or RESUME=0/--no-resume. "
+                f"saved={saved_signature} current={current_signature}"
+            )
         population = [list(chrom) for chrom in checkpoint["population"]]
         history = list(checkpoint["history"])
         best_result = CandidateResult(**checkpoint["best_result"])

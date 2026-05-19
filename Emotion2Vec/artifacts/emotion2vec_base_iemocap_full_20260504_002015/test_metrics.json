@@ -1,0 +1,14 @@
+{
+  "best_epoch": 25,
+  "best_val_f1_macro": 0.592728896879943,
+  "stopped_early": false,
+  "val_accuracy": 0.6434108527131783,
+  "val_f1_macro": 0.592728896879943,
+  "val_f1_weighted": 0.638488724554725,
+  "test_accuracy": 0.5868217054263566,
+  "test_f1_macro": 0.5674274627054775,
+  "test_f1_weighted": 0.586641538791305,
+  "test_precision_macro": 0.6383240020215427,
+  "test_recall_macro": 0.5350032112990267,
+  "frozen_emotion2vec": true
+}

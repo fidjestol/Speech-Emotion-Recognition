@@ -1,0 +1,37 @@
+{
+  "alpha": 1.0,
+  "artifacts_root": "feature_selection/ga/artifacts",
+  "beta": 0.03,
+  "crossover_rate": 0.9,
+  "elitism_k": 4,
+  "embedding_block_size": 128,
+  "evaluator_model": "random_forest",
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "families": [
+    "prosody_pitch"
+  ],
+  "family_selection_json": null,
+  "gamma": 0.02,
+  "generations": 1,
+  "group_column": "session",
+  "include_xxx": false,
+  "min_selected_groups": 1,
+  "mutation_rate": null,
+  "population_size": 4,
+  "random_state": 42,
+  "repo_root": "/cluster/home/bekadb/Speech-Emotion-Recognition",
+  "report_to": "none",
+  "require_agreement": true,
+  "resume": true,
+  "run_name": "ga_subfamily_smoke_loso_prosody",
+  "test_size": 0.2,
+  "tournament_size": 3,
+  "validation_mode": "loso",
+  "wandb_entity": null,
+  "wandb_project": "ser-feature-subfamily-selection"
+}

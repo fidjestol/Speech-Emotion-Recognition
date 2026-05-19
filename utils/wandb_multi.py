@@ -38,6 +38,28 @@ class MultiRunSummaryProxy:
             run.summary[key] = value
 
 
+def _is_wandb_table(value: Any) -> bool:
+    return hasattr(value, "columns") and hasattr(value, "data") and value.__class__.__name__ == "Table"
+
+
+def _clone_wandb_table(table: Any) -> Any:
+    import wandb
+
+    return wandb.Table(columns=list(table.columns), data=[list(row) for row in table.data])
+
+
+def _clone_log_payload(value: Any) -> Any:
+    if _is_wandb_table(value):
+        return _clone_wandb_table(value)
+    if isinstance(value, dict):
+        return {key: _clone_log_payload(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_clone_log_payload(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_clone_log_payload(item) for item in value)
+    return value
+
+
 @dataclass
 class MultiWandbRun:
     primary: Any
@@ -73,10 +95,11 @@ class MultiWandbRun:
 
     def log(self, data: dict[str, Any], *, step: int | None = None) -> None:
         for run in self.runs:
+            payload = _clone_log_payload(data)
             if step is None:
-                run.log(data)
+                run.log(payload)
             else:
-                run.log(data, step=step)
+                run.log(payload, step=step)
 
     def finish(self) -> None:
         for run in self.runs:
@@ -90,12 +113,17 @@ class MultiWandbRun:
 def init_multi_wandb_run(**init_kwargs: Any) -> MultiWandbRun:
     import wandb
 
+    init_kwargs = dict(init_kwargs)
+    if init_kwargs.get("reinit") is True:
+        init_kwargs["reinit"] = "create_new"
+
     primary = wandb.init(**init_kwargs)
     secondary_api_key = os.environ.get(SECONDARY_API_KEY_ENV, "").strip()
     if not secondary_api_key:
         return MultiWandbRun(primary=primary, mirror=None)
 
     mirror_kwargs = dict(init_kwargs)
+    mirror_kwargs["reinit"] = "create_new"
     mirror_project = os.environ.get(SECONDARY_PROJECT_ENV, "").strip()
     mirror_entity = os.environ.get(SECONDARY_ENTITY_ENV, "").strip()
     if mirror_project:

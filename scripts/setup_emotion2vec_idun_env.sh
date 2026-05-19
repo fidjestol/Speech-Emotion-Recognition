@@ -14,13 +14,15 @@ module load FFmpeg/6.0-GCCcore-13.2.0
 source .venv-idun/bin/activate
 
 python -m pip install -U pip wheel "setuptools<81"
-python -m pip install -U funasr modelscope
+python -m pip install -U funasr modelscope huggingface_hub
 
 python - <<'PY'
 from shutil import which
 
 import funasr
+import huggingface_hub
 
 print("funasr:", getattr(funasr, "__version__", "unknown"))
+print("huggingface_hub:", getattr(huggingface_hub, "__version__", "unknown"))
 print("ffmpeg:", which("ffmpeg"))
 PY

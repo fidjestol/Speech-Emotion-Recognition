@@ -54,3 +54,6 @@ feature_extraction/extracted_features/
 extracted_features/
 pyproject.toml
 uv.lock
+
+
+*.pdf

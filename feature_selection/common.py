@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import os
 import platform
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable
 
@@ -103,6 +105,36 @@ def variants_to_run(default_both: bool = True, default_include_xxx: bool = DEFAU
 
 
 def resolve_feature_source(repo_root: Path, dataset_key: str) -> Path:
+    env_suffix = re.sub(r"[^A-Za-z0-9]+", "_", str(dataset_key)).strip("_").upper()
+    if env_suffix:
+        override = os.getenv(f"SER_FEATURE_SOURCE_{env_suffix}")
+        if override:
+            return Path(override).expanduser()
+
+    manifest_path = os.getenv("SER_FEATURE_SOURCE_MANIFEST", "").strip()
+    if manifest_path:
+        manifest_file = Path(manifest_path).expanduser()
+        if manifest_file.exists():
+            payload = json.loads(manifest_file.read_text(encoding="utf-8"))
+            mapping = payload.get("datasets", payload) if isinstance(payload, dict) else {}
+            entry = mapping.get(dataset_key)
+            if entry is not None:
+                if isinstance(entry, dict):
+                    raw_path = entry.get("path") or entry.get("source_path")
+                else:
+                    raw_path = entry
+                if raw_path:
+                    resolved = Path(str(raw_path)).expanduser()
+                    if not resolved.is_absolute():
+                        resolved = manifest_file.parent / resolved
+                    return resolved
+
+    source_root = os.getenv("SER_FEATURE_SOURCE_ROOT", "").strip()
+    if source_root:
+        candidate = Path(source_root).expanduser() / f"{dataset_key}.csv"
+        if candidate.exists() or dataset_key not in FEATURE_SOURCE_RELATIVE_PATHS:
+            return candidate
+
     if dataset_key not in FEATURE_SOURCE_RELATIVE_PATHS:
         raise KeyError(f"Unknown dataset key: {dataset_key}")
     return repo_root / FEATURE_SOURCE_RELATIVE_PATHS[dataset_key]
