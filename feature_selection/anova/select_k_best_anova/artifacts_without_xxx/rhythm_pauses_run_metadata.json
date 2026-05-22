@@ -1,0 +1,147 @@
+{
+  "dataset_key": "rhythm_pauses",
+  "source_path": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\extracted_features\\rhythm_pauses\\rhythm_pauses_features.csv",
+  "artifact_dir": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\feature_selection\\anova\\select_k_best_anova\\artifacts_without_xxx",
+  "target_col": "emotion",
+  "machine_name": "macbook",
+  "include_xxx": false,
+  "variant_name": "without_xxx",
+  "require_agreement": true,
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "use_variant_artifact_dirs": true,
+  "rows_loaded": 9887,
+  "rows_after_filter": 7380,
+  "rows_used": 7380,
+  "original_features": 6,
+  "feature_columns_used": 6,
+  "dropped_feature_columns": 4,
+  "selected_features": 6,
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad"
+  ],
+  "k_config": 300,
+  "k_effective": 6,
+  "random_state": 42,
+  "test_size": 0.2,
+  "model_parallel_jobs": 1,
+  "model_parallel_mode": "sequential",
+  "best_baseline_model": "linear_svc",
+  "best_selected_model": "linear_svc",
+  "baseline_accuracy": 0.29336043360433606,
+  "baseline_precision": 0.27521239835504624,
+  "baseline_recall": 0.29336043360433606,
+  "baseline_f1": 0.2650300174198499,
+  "selected_accuracy": 0.29336043360433606,
+  "selected_precision": 0.27521239835504624,
+  "selected_recall": 0.29336043360433606,
+  "selected_f1": 0.2650300174198499,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.29336043360433606,
+      "precision": 0.27521239835504624,
+      "recall": 0.29336043360433606,
+      "f1": 0.2650300174198499
+    },
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.25474254742547425,
+      "precision": 0.24949357697712715,
+      "recall": 0.25474254742547425,
+      "f1": 0.2516949252381599
+    },
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.2682926829268293,
+      "precision": 0.2724570425166901,
+      "recall": 0.2682926829268293,
+      "f1": 0.24722650868392013
+    }
+  ],
+  "selected_model_metrics": [
+    {
+      "stage": "selected",
+      "model": "linear_svc",
+      "accuracy": 0.29336043360433606,
+      "precision": 0.27521239835504624,
+      "recall": 0.29336043360433606,
+      "f1": 0.2650300174198499
+    },
+    {
+      "stage": "selected",
+      "model": "random_forest",
+      "accuracy": 0.25474254742547425,
+      "precision": 0.24949357697712715,
+      "recall": 0.25474254742547425,
+      "f1": 0.2516949252381599
+    },
+    {
+      "stage": "selected",
+      "model": "logreg",
+      "accuracy": 0.2682926829268293,
+      "precision": 0.2724570425166901,
+      "recall": 0.2682926829268293,
+      "f1": 0.24722650868392013
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.29336043360433606,
+      "precision_baseline": 0.27521239835504624,
+      "recall_baseline": 0.29336043360433606,
+      "f1_baseline": 0.2650300174198499,
+      "accuracy_selected": 0.29336043360433606,
+      "precision_selected": 0.27521239835504624,
+      "recall_selected": 0.29336043360433606,
+      "f1_selected": 0.2650300174198499,
+      "accuracy_delta": 0.0,
+      "precision_delta": 0.0,
+      "recall_delta": 0.0,
+      "f1_delta": 0.0
+    },
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.25474254742547425,
+      "precision_baseline": 0.24949357697712715,
+      "recall_baseline": 0.25474254742547425,
+      "f1_baseline": 0.2516949252381599,
+      "accuracy_selected": 0.25474254742547425,
+      "precision_selected": 0.24949357697712715,
+      "recall_selected": 0.25474254742547425,
+      "f1_selected": 0.2516949252381599,
+      "accuracy_delta": 0.0,
+      "precision_delta": 0.0,
+      "recall_delta": 0.0,
+      "f1_delta": 0.0
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.2682926829268293,
+      "precision_baseline": 0.2724570425166901,
+      "recall_baseline": 0.2682926829268293,
+      "f1_baseline": 0.24722650868392013,
+      "accuracy_selected": 0.2682926829268293,
+      "precision_selected": 0.2724570425166901,
+      "recall_selected": 0.2682926829268293,
+      "f1_selected": 0.24722650868392013,
+      "accuracy_delta": 0.0,
+      "precision_delta": 0.0,
+      "recall_delta": 0.0,
+      "f1_delta": 0.0
+    }
+  ]
+}

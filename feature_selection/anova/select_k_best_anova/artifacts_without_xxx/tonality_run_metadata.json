@@ -1,0 +1,147 @@
+{
+  "dataset_key": "tonality",
+  "source_path": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\extracted_features\\tonality\\tonality_features.csv",
+  "artifact_dir": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\feature_selection\\anova\\select_k_best_anova\\artifacts_without_xxx",
+  "target_col": "emotion",
+  "machine_name": "desktop",
+  "include_xxx": false,
+  "variant_name": "without_xxx",
+  "require_agreement": true,
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "use_variant_artifact_dirs": true,
+  "rows_loaded": 9887,
+  "rows_after_filter": 7380,
+  "rows_used": 7380,
+  "original_features": 91,
+  "feature_columns_used": 91,
+  "dropped_feature_columns": 0,
+  "selected_features": 91,
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad"
+  ],
+  "k_config": 300,
+  "k_effective": 91,
+  "random_state": 42,
+  "test_size": 0.2,
+  "model_parallel_jobs": -1,
+  "model_parallel_mode": "auto",
+  "best_baseline_model": "random_forest",
+  "best_selected_model": "random_forest",
+  "baseline_accuracy": 0.3638211382113821,
+  "baseline_precision": 0.33987763277384664,
+  "baseline_recall": 0.3638211382113821,
+  "baseline_f1": 0.3250370404480017,
+  "selected_accuracy": 0.3638211382113821,
+  "selected_precision": 0.33987763277384664,
+  "selected_recall": 0.3638211382113821,
+  "selected_f1": 0.3250370404480017,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.3638211382113821,
+      "precision": 0.33987763277384664,
+      "recall": 0.3638211382113821,
+      "f1": 0.3250370404480017
+    },
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.3130081300813008,
+      "precision": 0.3328664801707813,
+      "recall": 0.3130081300813008,
+      "f1": 0.30340971002075395
+    },
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.32046070460704607,
+      "precision": 0.31995897839099136,
+      "recall": 0.32046070460704607,
+      "f1": 0.3031953630777849
+    }
+  ],
+  "selected_model_metrics": [
+    {
+      "stage": "selected",
+      "model": "random_forest",
+      "accuracy": 0.3638211382113821,
+      "precision": 0.33987763277384664,
+      "recall": 0.3638211382113821,
+      "f1": 0.3250370404480017
+    },
+    {
+      "stage": "selected",
+      "model": "logreg",
+      "accuracy": 0.3130081300813008,
+      "precision": 0.3328664801707813,
+      "recall": 0.3130081300813008,
+      "f1": 0.30340971002075395
+    },
+    {
+      "stage": "selected",
+      "model": "linear_svc",
+      "accuracy": 0.32046070460704607,
+      "precision": 0.31995897839099136,
+      "recall": 0.32046070460704607,
+      "f1": 0.3031953630777849
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.3638211382113821,
+      "precision_baseline": 0.33987763277384664,
+      "recall_baseline": 0.3638211382113821,
+      "f1_baseline": 0.3250370404480017,
+      "accuracy_selected": 0.3638211382113821,
+      "precision_selected": 0.33987763277384664,
+      "recall_selected": 0.3638211382113821,
+      "f1_selected": 0.3250370404480017,
+      "accuracy_delta": 0.0,
+      "precision_delta": 0.0,
+      "recall_delta": 0.0,
+      "f1_delta": 0.0
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.3130081300813008,
+      "precision_baseline": 0.3328664801707813,
+      "recall_baseline": 0.3130081300813008,
+      "f1_baseline": 0.30340971002075395,
+      "accuracy_selected": 0.3130081300813008,
+      "precision_selected": 0.3328664801707813,
+      "recall_selected": 0.3130081300813008,
+      "f1_selected": 0.30340971002075395,
+      "accuracy_delta": 0.0,
+      "precision_delta": 0.0,
+      "recall_delta": 0.0,
+      "f1_delta": 0.0
+    },
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.32046070460704607,
+      "precision_baseline": 0.31995897839099136,
+      "recall_baseline": 0.32046070460704607,
+      "f1_baseline": 0.3031953630777849,
+      "accuracy_selected": 0.32046070460704607,
+      "precision_selected": 0.31995897839099136,
+      "recall_selected": 0.32046070460704607,
+      "f1_selected": 0.3031953630777849,
+      "accuracy_delta": 0.0,
+      "precision_delta": 0.0,
+      "recall_delta": 0.0,
+      "f1_delta": 0.0
+    }
+  ]
+}

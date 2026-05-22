@@ -1,0 +1,13 @@
+[
+  "duration_s",
+  "pitch_frames",
+  "pitch_voiced_ratio",
+  "pitch_raw_voiced_ratio",
+  "pitch_f0_hz_mean",
+  "pitch_f0_hz_std",
+  "pitch_f0_hz_min",
+  "pitch_f0_hz_max",
+  "pitch_f0_hz_median",
+  "pitch_f0_hz_p10",
+  "pitch_f0_hz_p90"
+]

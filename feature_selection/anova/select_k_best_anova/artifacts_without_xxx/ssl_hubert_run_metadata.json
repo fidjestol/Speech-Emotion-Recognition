@@ -1,0 +1,147 @@
+{
+  "dataset_key": "ssl_hubert",
+  "source_path": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\extracted_features\\ssl_embeddings\\ssl_embeddings_hubert_features.csv",
+  "artifact_dir": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\feature_selection\\anova\\select_k_best_anova\\artifacts_without_xxx",
+  "target_col": "emotion",
+  "machine_name": "desktop",
+  "include_xxx": false,
+  "variant_name": "without_xxx",
+  "require_agreement": true,
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "use_variant_artifact_dirs": true,
+  "rows_loaded": 7532,
+  "rows_after_filter": 7380,
+  "rows_used": 7380,
+  "original_features": 1539,
+  "feature_columns_used": 1539,
+  "dropped_feature_columns": 0,
+  "selected_features": 300,
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad"
+  ],
+  "k_config": 300,
+  "k_effective": 300,
+  "random_state": 42,
+  "test_size": 0.2,
+  "model_parallel_jobs": -1,
+  "model_parallel_mode": "auto",
+  "best_baseline_model": "logreg",
+  "best_selected_model": "linear_svc",
+  "baseline_accuracy": 0.47289972899729,
+  "baseline_precision": 0.47598189171285227,
+  "baseline_recall": 0.47289972899729,
+  "baseline_f1": 0.47368942892310206,
+  "selected_accuracy": 0.47560975609756095,
+  "selected_precision": 0.47615360025078735,
+  "selected_recall": 0.47560975609756095,
+  "selected_f1": 0.4698335300334846,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.47289972899729,
+      "precision": 0.47598189171285227,
+      "recall": 0.47289972899729,
+      "f1": 0.47368942892310206
+    },
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.46815718157181574,
+      "precision": 0.45450138768775844,
+      "recall": 0.46815718157181574,
+      "f1": 0.447283077557032
+    },
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.4464769647696477,
+      "precision": 0.44772818334933256,
+      "recall": 0.4464769647696477,
+      "f1": 0.4461239802332216
+    }
+  ],
+  "selected_model_metrics": [
+    {
+      "stage": "selected",
+      "model": "linear_svc",
+      "accuracy": 0.47560975609756095,
+      "precision": 0.47615360025078735,
+      "recall": 0.47560975609756095,
+      "f1": 0.4698335300334846
+    },
+    {
+      "stage": "selected",
+      "model": "logreg",
+      "accuracy": 0.4600271002710027,
+      "precision": 0.4700094204433577,
+      "recall": 0.4600271002710027,
+      "f1": 0.45789599924235774
+    },
+    {
+      "stage": "selected",
+      "model": "random_forest",
+      "accuracy": 0.46747967479674796,
+      "precision": 0.4515218138780398,
+      "recall": 0.46747967479674796,
+      "f1": 0.4434014112411517
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.4464769647696477,
+      "precision_baseline": 0.44772818334933256,
+      "recall_baseline": 0.4464769647696477,
+      "f1_baseline": 0.4461239802332216,
+      "accuracy_selected": 0.47560975609756095,
+      "precision_selected": 0.47615360025078735,
+      "recall_selected": 0.47560975609756095,
+      "f1_selected": 0.4698335300334846,
+      "accuracy_delta": 0.029132791327913243,
+      "precision_delta": 0.02842541690145478,
+      "recall_delta": 0.029132791327913243,
+      "f1_delta": 0.02370954980026302
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.47289972899729,
+      "precision_baseline": 0.47598189171285227,
+      "recall_baseline": 0.47289972899729,
+      "f1_baseline": 0.47368942892310206,
+      "accuracy_selected": 0.4600271002710027,
+      "precision_selected": 0.4700094204433577,
+      "recall_selected": 0.4600271002710027,
+      "f1_selected": 0.45789599924235774,
+      "accuracy_delta": -0.012872628726287305,
+      "precision_delta": -0.0059724712694945725,
+      "recall_delta": -0.012872628726287305,
+      "f1_delta": -0.01579342968074432
+    },
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.46815718157181574,
+      "precision_baseline": 0.45450138768775844,
+      "recall_baseline": 0.46815718157181574,
+      "f1_baseline": 0.447283077557032,
+      "accuracy_selected": 0.46747967479674796,
+      "precision_selected": 0.4515218138780398,
+      "recall_selected": 0.46747967479674796,
+      "f1_selected": 0.4434014112411517,
+      "accuracy_delta": -0.0006775067750677821,
+      "precision_delta": -0.0029795738097186386,
+      "recall_delta": -0.0006775067750677821,
+      "f1_delta": -0.0038816663158803277
+    }
+  ]
+}

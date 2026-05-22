@@ -1,0 +1,147 @@
+{
+  "dataset_key": "ssl_wav2vec",
+  "source_path": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\extracted_features\\ssl_embeddings\\ssl_embeddings_wav2vec_features.csv",
+  "artifact_dir": "C:\\Users\\marsh\\Documents\\GitHub\\Speech-Emotion-Recognition\\feature_selection\\anova\\select_k_best_anova\\artifacts_without_xxx",
+  "target_col": "emotion",
+  "machine_name": "desktop",
+  "include_xxx": false,
+  "variant_name": "without_xxx",
+  "require_agreement": true,
+  "excluded_emotions": [
+    "sur",
+    "fea",
+    "oth",
+    "dis"
+  ],
+  "use_variant_artifact_dirs": true,
+  "rows_loaded": 9887,
+  "rows_after_filter": 7380,
+  "rows_used": 7380,
+  "original_features": 1539,
+  "feature_columns_used": 1539,
+  "dropped_feature_columns": 0,
+  "selected_features": 300,
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad"
+  ],
+  "k_config": 300,
+  "k_effective": 300,
+  "random_state": 42,
+  "test_size": 0.2,
+  "model_parallel_jobs": -1,
+  "model_parallel_mode": "auto",
+  "best_baseline_model": "logreg",
+  "best_selected_model": "linear_svc",
+  "baseline_accuracy": 0.47696476964769646,
+  "baseline_precision": 0.48108682781475387,
+  "baseline_recall": 0.47696476964769646,
+  "baseline_f1": 0.477693169690546,
+  "selected_accuracy": 0.47899728997289975,
+  "selected_precision": 0.4818228552553638,
+  "selected_recall": 0.47899728997289975,
+  "selected_f1": 0.4748883307305863,
+  "baseline_model_metrics": [
+    {
+      "stage": "baseline",
+      "model": "logreg",
+      "accuracy": 0.47696476964769646,
+      "precision": 0.48108682781475387,
+      "recall": 0.47696476964769646,
+      "f1": 0.477693169690546
+    },
+    {
+      "stage": "baseline",
+      "model": "linear_svc",
+      "accuracy": 0.44173441734417346,
+      "precision": 0.44410357400742195,
+      "recall": 0.44173441734417346,
+      "f1": 0.441251995204539
+    },
+    {
+      "stage": "baseline",
+      "model": "random_forest",
+      "accuracy": 0.4532520325203252,
+      "precision": 0.5375762949666831,
+      "recall": 0.4532520325203252,
+      "f1": 0.4308832807571104
+    }
+  ],
+  "selected_model_metrics": [
+    {
+      "stage": "selected",
+      "model": "linear_svc",
+      "accuracy": 0.47899728997289975,
+      "precision": 0.4818228552553638,
+      "recall": 0.47899728997289975,
+      "f1": 0.4748883307305863
+    },
+    {
+      "stage": "selected",
+      "model": "logreg",
+      "accuracy": 0.4573170731707317,
+      "precision": 0.465608479544451,
+      "recall": 0.4573170731707317,
+      "f1": 0.4568127439269768
+    },
+    {
+      "stage": "selected",
+      "model": "random_forest",
+      "accuracy": 0.4491869918699187,
+      "precision": 0.43640111206261917,
+      "recall": 0.4491869918699187,
+      "f1": 0.42482478151067576
+    }
+  ],
+  "model_metric_deltas": [
+    {
+      "model": "linear_svc",
+      "accuracy_baseline": 0.44173441734417346,
+      "precision_baseline": 0.44410357400742195,
+      "recall_baseline": 0.44173441734417346,
+      "f1_baseline": 0.441251995204539,
+      "accuracy_selected": 0.47899728997289975,
+      "precision_selected": 0.4818228552553638,
+      "recall_selected": 0.47899728997289975,
+      "f1_selected": 0.4748883307305863,
+      "accuracy_delta": 0.037262872628726296,
+      "precision_delta": 0.03771928124794183,
+      "recall_delta": 0.037262872628726296,
+      "f1_delta": 0.03363633552604728
+    },
+    {
+      "model": "logreg",
+      "accuracy_baseline": 0.47696476964769646,
+      "precision_baseline": 0.48108682781475387,
+      "recall_baseline": 0.47696476964769646,
+      "f1_baseline": 0.477693169690546,
+      "accuracy_selected": 0.4573170731707317,
+      "precision_selected": 0.465608479544451,
+      "recall_selected": 0.4573170731707317,
+      "f1_selected": 0.4568127439269768,
+      "accuracy_delta": -0.019647696476964738,
+      "precision_delta": -0.015478348270302866,
+      "recall_delta": -0.019647696476964738,
+      "f1_delta": -0.020880425763569188
+    },
+    {
+      "model": "random_forest",
+      "accuracy_baseline": 0.4532520325203252,
+      "precision_baseline": 0.5375762949666831,
+      "recall_baseline": 0.4532520325203252,
+      "f1_baseline": 0.4308832807571104,
+      "accuracy_selected": 0.4491869918699187,
+      "precision_selected": 0.43640111206261917,
+      "recall_selected": 0.4491869918699187,
+      "f1_selected": 0.42482478151067576,
+      "accuracy_delta": -0.004065040650406526,
+      "precision_delta": -0.10117518290406396,
+      "recall_delta": -0.004065040650406526,
+      "f1_delta": -0.0060584992464346454
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+[
+  "duration_s",
+  "rhythm_pause_ratio",
+  "rhythm_speech_ratio",
+  "rhythm_onset_rate_hz",
+  "rhythm_onset_count",
+  "rhythm_pause_count"
+]
