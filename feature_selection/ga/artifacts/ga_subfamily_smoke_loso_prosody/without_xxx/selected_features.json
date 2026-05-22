@@ -1,0 +1,11 @@
+{
+  "selected_features": [
+    "prosody_pitch__pitch_f0_hz_max",
+    "prosody_pitch__pitch_f0_hz_mean",
+    "prosody_pitch__pitch_f0_hz_median",
+    "prosody_pitch__pitch_f0_hz_min",
+    "prosody_pitch__pitch_f0_hz_p10",
+    "prosody_pitch__pitch_f0_hz_p90",
+    "prosody_pitch__pitch_f0_hz_std"
+  ]
+}

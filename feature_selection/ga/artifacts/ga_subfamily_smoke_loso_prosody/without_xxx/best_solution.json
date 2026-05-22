@@ -1,0 +1,29 @@
+{
+  "accuracy": 0.30961918577461234,
+  "chromosome": [
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "chromosome_key": "01000",
+  "f1_macro": 0.25950429904912725,
+  "f1_weighted": 0.2932937193982549,
+  "fitness": 0.24350429904912724,
+  "n_folds": 5,
+  "num_available_features": 14,
+  "num_available_groups": 5,
+  "num_rows": 7380,
+  "num_selected_features": 7,
+  "num_selected_groups": 1,
+  "num_test_rows": 1476,
+  "num_train_rows": 5904,
+  "selected_families": [
+    "prosody_pitch"
+  ],
+  "selected_groups": [
+    "prosody_pitch::pitch_f0"
+  ],
+  "validation_mode": "loso"
+}

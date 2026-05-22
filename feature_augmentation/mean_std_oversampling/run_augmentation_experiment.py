@@ -116,6 +116,7 @@ class ExperimentArgs:
     wandb_group: str | None
     save_augmented_matrices: bool
     save_models: bool
+    train_augmented_final_stacking: bool
     models: list[str]
     xgb_estimators: int
     xgb_learning_rate: float
@@ -694,6 +695,15 @@ def build_parser() -> argparse.ArgumentParser:
         action=argparse.BooleanOptionalAction,
         default=True,
     )
+    parser.add_argument(
+        "--train-augmented-final-stacking",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Whether to train the exported augmented_final stacking model. "
+            "This does not affect cross-validation metrics, only the final saved model."
+        ),
+    )
     parser.add_argument("--models", nargs="*", default=list(ALL_MODEL_NAMES), choices=ALL_MODEL_NAMES)
     parser.add_argument("--xgb-estimators", type=int, default=400)
     parser.add_argument("--xgb-learning-rate", type=float, default=0.05)
@@ -730,6 +740,7 @@ def parse_args(argv: list[str] | None = None) -> ExperimentArgs:
         wandb_group=args.wandb_group,
         save_augmented_matrices=bool(args.save_augmented_matrices),
         save_models=bool(args.save_models),
+        train_augmented_final_stacking=bool(args.train_augmented_final_stacking),
         models=list(args.models),
         xgb_estimators=int(args.xgb_estimators),
         xgb_learning_rate=float(args.xgb_learning_rate),
@@ -919,10 +930,37 @@ def fit_final_models(
     stage_name: str,
     model_dir: Path,
     save_models_flag: bool,
+    train_augmented_final_stacking: bool,
     progress_hook: ProgressHook | None = None,
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for model_name, builder in model_builders.items():
+        if stage_name == "augmented_final" and model_name == "stacking" and not train_augmented_final_stacking:
+            if progress_hook is not None:
+                progress_hook(
+                    {
+                        "event": "model_skipped",
+                        "stage": stage_name,
+                        "fold": "full_data",
+                        "held_out_session": None,
+                        "model": model_name,
+                        "reason": "disabled_by_config",
+                    }
+                )
+            rows.append(
+                {
+                    "stage": stage_name,
+                    "model": model_name,
+                    "train_rows": int(len(X_eval)),
+                    "runtime_seconds": float("nan"),
+                    "model_path": None,
+                    "resumed_from_disk": False,
+                    "skipped": True,
+                    "skip_reason": "disabled_by_config",
+                }
+            )
+            continue
+
         model_path = final_model_path(model_dir, stage_name, model_name) if save_models_flag else None
         resumed_from_disk = False
         elapsed = float("nan")
@@ -985,6 +1023,8 @@ def fit_final_models(
                 "runtime_seconds": elapsed,
                 "model_path": str(model_path) if model_path is not None else None,
                 "resumed_from_disk": bool(resumed_from_disk),
+                "skipped": False,
+                "skip_reason": None,
             }
         )
     return rows
@@ -1108,7 +1148,14 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
     model_names = list(model_builders.keys())
     stages_per_fold = ["baseline", "augmented"]
     final_stages = ["baseline_final", "augmented_final"]
-    total_model_fits = total_outer_folds * len(stages_per_fold) * len(model_names) + len(final_stages) * len(model_names)
+    skipped_final_fits = 0
+    if not args.train_augmented_final_stacking and "stacking" in model_names:
+        skipped_final_fits += 1
+    total_model_fits = (
+        total_outer_folds * len(stages_per_fold) * len(model_names)
+        + len(final_stages) * len(model_names)
+        - skipped_final_fits
+    )
     progress_state = {"completed_model_fits": 0}
 
     def emit_progress(payload: dict[str, Any]) -> None:
@@ -1153,6 +1200,27 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
                 f"[progress] dataset={args.dataset_key} variant={variant} "
                 f"fold={fold} held_out_session={held_out_session} stage={stage} model={model} "
                 f"status=resume_reuse model_path={model_path} completed_fits={completed}/{total_model_fits}",
+                flush=True,
+            )
+            if wandb_run is not None:
+                wandb_run.log(
+                    {
+                        "progress/completed_model_fits": completed,
+                        "progress/total_model_fits": total_model_fits,
+                        "progress/current_stage_label": stage,
+                        "progress/current_model_label": model,
+                        "progress/current_fold_label": fold,
+                        "progress/current_held_out_session": held_out_session if held_out_session is not None else -1,
+                    }
+                )
+        elif event == "model_skipped":
+            progress_state["completed_model_fits"] += 1
+            completed = progress_state["completed_model_fits"]
+            reason = str(payload.get("reason", "unspecified"))
+            print(
+                f"[progress] dataset={args.dataset_key} variant={variant} "
+                f"fold={fold} held_out_session={held_out_session} stage={stage} model={model} "
+                f"status=skip reason={reason} completed_fits={completed}/{total_model_fits}",
                 flush=True,
             )
             if wandb_run is not None:
@@ -1438,6 +1506,7 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
             stage_name="baseline_final",
             model_dir=models_dir / "final",
             save_models_flag=args.save_models,
+            train_augmented_final_stacking=args.train_augmented_final_stacking,
             progress_hook=emit_progress,
         )
     )
@@ -1457,6 +1526,7 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
             stage_name="augmented_final",
             model_dir=models_dir / "final",
             save_models_flag=args.save_models,
+            train_augmented_final_stacking=args.train_augmented_final_stacking,
             progress_hook=emit_progress,
         )
     )
@@ -1509,6 +1579,7 @@ def run_experiment(args: ExperimentArgs) -> dict[str, Any]:
         "augmentation_target_per_class": args.target_per_class,
         "augmentation_group_size": args.group_size,
         "augmentation_random_state": args.augmentation_random_state,
+        "train_augmented_final_stacking": args.train_augmented_final_stacking,
         "best_baseline_model": best_baseline_model,
         "best_augmented_model": best_augmented_model,
         "best_baseline_metrics": best_baseline_row.to_dict(),

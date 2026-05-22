@@ -1,0 +1,72 @@
+{
+  "best_result": {
+    "accuracy": 0.4911924119241192,
+    "chromosome": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "chromosome_key": "01000000",
+    "f1_macro": 0.4263051277786338,
+    "f1_weighted": 0.4671812834282499,
+    "fitness": 0.4037406947889431,
+    "num_available_features": 1164,
+    "num_available_groups": 8,
+    "num_rows": 7380,
+    "num_selected_features": 1095,
+    "num_selected_groups": 1,
+    "num_test_rows": 1476,
+    "num_train_rows": 5904,
+    "selected_families": [
+      "mfcc_raw"
+    ],
+    "selected_groups": [
+      "mfcc_raw::mfcc_coefficients"
+    ]
+  },
+  "families": [
+    "mfcc_raw",
+    "prosody_pitch"
+  ],
+  "group_keys": [
+    "mfcc_raw::duration",
+    "mfcc_raw::mfcc_coefficients",
+    "mfcc_raw::mfcc_global",
+    "prosody_pitch::duration",
+    "prosody_pitch::pitch_f0",
+    "prosody_pitch::pitch_frames",
+    "prosody_pitch::pitch_voiced_ratio",
+    "prosody_pitch::pitch_voicing_probability"
+  ],
+  "history": [
+    {
+      "avg_fitness": 0.3317379765770479,
+      "avg_macro_f1": 0.3535728849390181,
+      "avg_selected_features": 579.6666666666666,
+      "avg_selected_groups": 3.1666666666666665,
+      "best_accuracy": 0.4911924119241192,
+      "best_chromosome": "01000000",
+      "best_fitness": 0.4037406947889431,
+      "best_macro_f1": 0.4263051277786338,
+      "best_selected_families": "mfcc_raw",
+      "best_selected_features": 1095,
+      "best_selected_groups": "mfcc_raw::mfcc_coefficients",
+      "coverage_fraction": 0.023529411764705882,
+      "coverage_percent": 2.3529411764705883,
+      "duplicate_fraction": 0.0,
+      "evaluated_subsets": 6,
+      "generation": 0,
+      "generation_runtime_seconds": 6.542913615703583e-05,
+      "total_elapsed_seconds": 41.40978453774005,
+      "unique_chromosomes": 6,
+      "worst_fitness": 0.17035380220848567
+    }
+  ],
+  "next_generation": 1,
+  "variant": "without_xxx"
+}

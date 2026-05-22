@@ -1,0 +1,11 @@
+{
+  "selected_groups": [
+    "prosody_energy::energy_rms",
+    "prosody_pitch::pitch_f0",
+    "bert::bert_emb_block_0128_0255",
+    "bert::bert_emb_block_0256_0383",
+    "bert::bert_emb_block_0384_0511",
+    "bert::bert_emb_block_0640_0767",
+    "rhythm_pauses::rhythm_speech"
+  ]
+}

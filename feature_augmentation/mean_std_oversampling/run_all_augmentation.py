@@ -73,6 +73,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action=argparse.BooleanOptionalAction,
         default=True,
     )
+    parser.add_argument(
+        "--train-augmented-final-stacking",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "Whether to train the exported augmented_final stacking model. "
+            "This does not affect cross-validation metrics, only the final saved model."
+        ),
+    )
     parser.add_argument("--models", nargs="*", default=list(ALL_MODEL_NAMES), choices=ALL_MODEL_NAMES)
     return parser.parse_args(argv)
 
@@ -257,6 +266,10 @@ def main(argv: list[str] | None = None) -> int:
                 cmd.append("--save-models")
             else:
                 cmd.append("--no-save-models")
+            if args.train_augmented_final_stacking:
+                cmd.append("--train-augmented-final-stacking")
+            else:
+                cmd.append("--no-train-augmented-final-stacking")
             if args.wandb_entity:
                 cmd.extend(["--wandb-entity", args.wandb_entity])
             if args.wandb_group:
