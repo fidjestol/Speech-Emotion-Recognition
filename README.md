@@ -1,5 +1,5 @@
 # Speech-Emotion-Recognition
-Masters project on Speech Emotion Recognition in call automation.
+Masters project on Speech Emotion Recognition.
 
 ## Repository Contents
 This repository tracks source code, notebooks, configuration files, and documentation for
