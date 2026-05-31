@@ -1,3 +1,4 @@
+# Python caches
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -18,42 +19,34 @@ coverage.xml
 .venv/
 .venv-idun/
 .venv-login-gpu/
+.venv_clean/
 env/
 venv/
-.venv_clean/
 
 # Build / packaging
 build/
 dist/
 
-# Project outputs & caches
-outputs/
-logs/
-whisper/finetuning/artifacts/
-feature_augmentation/mean_std_oversampling/artifacts/
-catboost_info/
+# Local generated files
+.codex
+=*
+*.log
 *.pdf
 *.html
 *.ps1
+uv.lock.broken
+*.tex
+*.bib
+*.aux
+*.bbl
+*.blg
+*.toc
+*.out
+*.synctex.gz
+
+# Local experiment/runtime outputs
+outputs/
+logs/
+catboost_info/
 wandb/
 *.wandb
-wandb/latest-run
-wandb/debug.log
-wandb/debug-internal.log
-=*
-# Large datasets (keep metadata TSVs, ignore audio clips)
-datasets/**/clips/
-datasets/IEMOCAP/**
-datasets/IEMOCAP/
-#!datasets/IEMOCAP/iemocap_full_dataset.csv
-datasets/IEMOCAP_light/
-datasets/MELD/
-# Local tool/version files
-.python-version
-feature_extraction/extracted_features/
-extracted_features/
-pyproject.toml
-uv.lock
-
-
-*.pdf
