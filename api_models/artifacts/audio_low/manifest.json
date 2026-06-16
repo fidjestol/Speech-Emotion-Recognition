@@ -1,0 +1,63 @@
+{
+  "model_id": "audio_low",
+  "modality": "audio",
+  "tier": "low",
+  "description": "Lightweight prosody, pitch, rhythm, and pause descriptors only.",
+  "model_file": "model.joblib",
+  "feature_schema_file": "feature_schema.json",
+  "metrics_file": "metrics.json",
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad",
+    "xxx"
+  ],
+  "input_contract": {
+    "requires_text": false,
+    "requires_numeric_features": true,
+    "numeric_feature_count": 26,
+    "payload_shape": {
+      "text": "string transcript; required when requires_text is true",
+      "features": "object mapping feature name to numeric value; required when requires_numeric_features is true"
+    }
+  },
+  "components": {
+    "text_vectorizer": null,
+    "feature_families": [
+      {
+        "name": "prosody_energy",
+        "selected_features": false
+      },
+      {
+        "name": "prosody_pitch",
+        "selected_features": true
+      },
+      {
+        "name": "rhythm_pauses",
+        "selected_features": false
+      }
+    ],
+    "classifier": "logreg_low"
+  },
+  "training": {
+    "source_rows_after_base_filter": 9887,
+    "train_rows": 7745,
+    "test_rows": 2142,
+    "include_xxx": true,
+    "random_state": 42,
+    "base_table": "extracted_features/text/bert_embeddings.csv",
+    "source_tables": {
+      "prosody_energy": "extracted_features/prosody_energy/prosody_energy_features.csv",
+      "prosody_pitch": "extracted_features/prosody_pitch/prosody_pitch_features.csv",
+      "rhythm_pauses": "extracted_features/rhythm_pauses/rhythm_pauses_features.csv"
+    }
+  },
+  "metrics_summary": {
+    "accuracy": 0.28244631185807656,
+    "f1_macro": 0.26531164460738954,
+    "f1_weighted": 0.268201151511159
+  }
+}

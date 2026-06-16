@@ -1,0 +1,88 @@
+{
+  "model_id": "audio_text_medium",
+  "modality": "audio_text",
+  "tier": "medium",
+  "description": "Text TF-IDF and selected BERT embeddings with medium acoustic feature coverage.",
+  "model_file": "model.joblib",
+  "feature_schema_file": "feature_schema.json",
+  "metrics_file": "metrics.json",
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad",
+    "xxx"
+  ],
+  "input_contract": {
+    "requires_text": true,
+    "requires_numeric_features": true,
+    "numeric_feature_count": 782,
+    "payload_shape": {
+      "text": "string transcript; required when requires_text is true",
+      "features": "object mapping feature name to numeric value; required when requires_numeric_features is true"
+    }
+  },
+  "components": {
+    "text_vectorizer": "word_tfidf_medium",
+    "feature_families": [
+      {
+        "name": "bert",
+        "selected_features": true
+      },
+      {
+        "name": "prosody_energy",
+        "selected_features": false
+      },
+      {
+        "name": "prosody_pitch",
+        "selected_features": true
+      },
+      {
+        "name": "rhythm_pauses",
+        "selected_features": false
+      },
+      {
+        "name": "spectral_shape",
+        "selected_features": false
+      },
+      {
+        "name": "tonality",
+        "selected_features": false
+      },
+      {
+        "name": "voice_quality",
+        "selected_features": false
+      },
+      {
+        "name": "mfcc_normalized",
+        "selected_features": true
+      }
+    ],
+    "classifier": "logreg_medium"
+  },
+  "training": {
+    "source_rows_after_base_filter": 9887,
+    "train_rows": 7745,
+    "test_rows": 2142,
+    "include_xxx": true,
+    "random_state": 42,
+    "base_table": "extracted_features/text/bert_embeddings.csv",
+    "source_tables": {
+      "bert": "extracted_features/text/bert_embeddings.csv",
+      "prosody_energy": "extracted_features/prosody_energy/prosody_energy_features.csv",
+      "prosody_pitch": "extracted_features/prosody_pitch/prosody_pitch_features.csv",
+      "rhythm_pauses": "extracted_features/rhythm_pauses/rhythm_pauses_features.csv",
+      "spectral_shape": "extracted_features/spectral_shape/spectral_shape_features.csv",
+      "tonality": "extracted_features/tonality/tonality_features.csv",
+      "voice_quality": "extracted_features/voice_quality/voice_quality_features.csv",
+      "mfcc_normalized": "extracted_features/mfcc/mfcc_features_normalized.csv"
+    }
+  },
+  "metrics_summary": {
+    "accuracy": 0.41643323996265175,
+    "f1_macro": 0.4137646927262633,
+    "f1_weighted": 0.40735046665771235
+  }
+}

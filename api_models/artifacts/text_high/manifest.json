@@ -1,0 +1,53 @@
+{
+  "model_id": "text_high",
+  "modality": "text",
+  "tier": "high",
+  "description": "Raw transcript word/character TF-IDF plus full BERT text embeddings.",
+  "model_file": "model.joblib",
+  "feature_schema_file": "feature_schema.json",
+  "metrics_file": "metrics.json",
+  "classes": [
+    "ang",
+    "exc",
+    "fru",
+    "hap",
+    "neu",
+    "sad",
+    "xxx"
+  ],
+  "input_contract": {
+    "requires_text": true,
+    "requires_numeric_features": true,
+    "numeric_feature_count": 768,
+    "payload_shape": {
+      "text": "string transcript; required when requires_text is true",
+      "features": "object mapping feature name to numeric value; required when requires_numeric_features is true"
+    }
+  },
+  "components": {
+    "text_vectorizer": "word_char_tfidf_high",
+    "feature_families": [
+      {
+        "name": "bert",
+        "selected_features": false
+      }
+    ],
+    "classifier": "sgd_high"
+  },
+  "training": {
+    "source_rows_after_base_filter": 9887,
+    "train_rows": 7745,
+    "test_rows": 2142,
+    "include_xxx": true,
+    "random_state": 42,
+    "base_table": "extracted_features/text/bert_embeddings.csv",
+    "source_tables": {
+      "bert": "extracted_features/text/bert_embeddings.csv"
+    }
+  },
+  "metrics_summary": {
+    "accuracy": 0.3557422969187675,
+    "f1_macro": 0.35464298562245566,
+    "f1_weighted": 0.35572224285786147
+  }
+}

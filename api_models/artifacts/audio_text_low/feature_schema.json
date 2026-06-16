@@ -1,0 +1,69 @@
+{
+  "model_id": "audio_text_low",
+  "requires_text": true,
+  "text_column": "text",
+  "text_vectorizer": "word_tfidf_low",
+  "numeric_feature_count": 26,
+  "numeric_features": [
+    "prosody_energy__energy_frames",
+    "prosody_energy__energy_voiced_ratio",
+    "prosody_energy__energy_rms_db_mean",
+    "prosody_energy__energy_rms_db_std",
+    "prosody_energy__energy_rms_db_min",
+    "prosody_energy__energy_rms_db_max",
+    "prosody_energy__energy_rms_db_median",
+    "prosody_pitch__pitch_frames",
+    "prosody_pitch__pitch_voiced_ratio",
+    "prosody_pitch__pitch_raw_voiced_ratio",
+    "prosody_pitch__pitch_f0_hz_mean",
+    "prosody_pitch__pitch_f0_hz_std",
+    "prosody_pitch__pitch_f0_hz_min",
+    "prosody_pitch__pitch_f0_hz_max",
+    "prosody_pitch__pitch_f0_hz_median",
+    "prosody_pitch__pitch_f0_hz_p10",
+    "prosody_pitch__pitch_f0_hz_p90",
+    "rhythm_pauses__rhythm_pause_ratio",
+    "rhythm_pauses__rhythm_speech_ratio",
+    "rhythm_pauses__rhythm_onset_rate_hz",
+    "rhythm_pauses__rhythm_onset_count",
+    "rhythm_pauses__rhythm_pause_count",
+    "rhythm_pauses__rhythm_pause_mean_s",
+    "rhythm_pauses__rhythm_pause_std_s",
+    "rhythm_pauses__rhythm_pause_median_s",
+    "rhythm_pauses__rhythm_pause_max_s"
+  ],
+  "features_by_family": {
+    "prosody_energy": [
+      "prosody_energy__energy_frames",
+      "prosody_energy__energy_voiced_ratio",
+      "prosody_energy__energy_rms_db_mean",
+      "prosody_energy__energy_rms_db_std",
+      "prosody_energy__energy_rms_db_min",
+      "prosody_energy__energy_rms_db_max",
+      "prosody_energy__energy_rms_db_median"
+    ],
+    "prosody_pitch": [
+      "prosody_pitch__pitch_frames",
+      "prosody_pitch__pitch_voiced_ratio",
+      "prosody_pitch__pitch_raw_voiced_ratio",
+      "prosody_pitch__pitch_f0_hz_mean",
+      "prosody_pitch__pitch_f0_hz_std",
+      "prosody_pitch__pitch_f0_hz_min",
+      "prosody_pitch__pitch_f0_hz_max",
+      "prosody_pitch__pitch_f0_hz_median",
+      "prosody_pitch__pitch_f0_hz_p10",
+      "prosody_pitch__pitch_f0_hz_p90"
+    ],
+    "rhythm_pauses": [
+      "rhythm_pauses__rhythm_pause_ratio",
+      "rhythm_pauses__rhythm_speech_ratio",
+      "rhythm_pauses__rhythm_onset_rate_hz",
+      "rhythm_pauses__rhythm_onset_count",
+      "rhythm_pauses__rhythm_pause_count",
+      "rhythm_pauses__rhythm_pause_mean_s",
+      "rhythm_pauses__rhythm_pause_std_s",
+      "rhythm_pauses__rhythm_pause_median_s",
+      "rhythm_pauses__rhythm_pause_max_s"
+    ]
+  }
+}

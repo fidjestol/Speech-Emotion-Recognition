@@ -1,0 +1,149 @@
+{
+  "accuracy": 0.430905695611578,
+  "f1_macro": 0.4298136921349994,
+  "f1_weighted": 0.4205054130204386,
+  "classification_report": {
+    "ang": {
+      "precision": 0.41106719367588934,
+      "recall": 0.611764705882353,
+      "f1-score": 0.491725768321513,
+      "support": 170.0
+    },
+    "exc": {
+      "precision": 0.4980544747081712,
+      "recall": 0.4280936454849498,
+      "f1-score": 0.460431654676259,
+      "support": 299.0
+    },
+    "fru": {
+      "precision": 0.4665012406947891,
+      "recall": 0.49343832020997375,
+      "f1-score": 0.47959183673469385,
+      "support": 381.0
+    },
+    "hap": {
+      "precision": 0.2529411764705882,
+      "recall": 0.3006993006993007,
+      "f1-score": 0.2747603833865815,
+      "support": 143.0
+    },
+    "neu": {
+      "precision": 0.4504950495049505,
+      "recall": 0.4739583333333333,
+      "f1-score": 0.4619289340101523,
+      "support": 384.0
+    },
+    "sad": {
+      "precision": 0.49696969696969695,
+      "recall": 0.6693877551020408,
+      "f1-score": 0.5704347826086956,
+      "support": 245.0
+    },
+    "xxx": {
+      "precision": 0.3507692307692308,
+      "recall": 0.21923076923076923,
+      "f1-score": 0.2698224852071006,
+      "support": 520.0
+    },
+    "accuracy": 0.430905695611578,
+    "macro avg": {
+      "precision": 0.4181140089704738,
+      "recall": 0.45665326142038865,
+      "f1-score": 0.4298136921349994,
+      "support": 2142.0
+    },
+    "weighted avg": {
+      "precision": 0.4247688826191082,
+      "recall": 0.430905695611578,
+      "f1-score": 0.4205054130204386,
+      "support": 2142.0
+    }
+  },
+  "proba_preview": [
+    {
+      "row": 0,
+      "top": [
+        {
+          "label": "xxx",
+          "probability": 0.25515559444286456
+        },
+        {
+          "label": "neu",
+          "probability": 0.2491386898950585
+        },
+        {
+          "label": "sad",
+          "probability": 0.1824420914810512
+        }
+      ]
+    },
+    {
+      "row": 1,
+      "top": [
+        {
+          "label": "xxx",
+          "probability": 0.439006720419252
+        },
+        {
+          "label": "exc",
+          "probability": 0.18031023169886473
+        },
+        {
+          "label": "fru",
+          "probability": 0.1547162031945913
+        }
+      ]
+    },
+    {
+      "row": 2,
+      "top": [
+        {
+          "label": "exc",
+          "probability": 0.48368776961822735
+        },
+        {
+          "label": "fru",
+          "probability": 0.17915529407427602
+        },
+        {
+          "label": "xxx",
+          "probability": 0.17862513596462362
+        }
+      ]
+    },
+    {
+      "row": 3,
+      "top": [
+        {
+          "label": "ang",
+          "probability": 0.23403154314435773
+        },
+        {
+          "label": "neu",
+          "probability": 0.22511129672361976
+        },
+        {
+          "label": "xxx",
+          "probability": 0.16921476069958447
+        }
+      ]
+    },
+    {
+      "row": 4,
+      "top": [
+        {
+          "label": "hap",
+          "probability": 0.3746218104671289
+        },
+        {
+          "label": "xxx",
+          "probability": 0.2600160460305944
+        },
+        {
+          "label": "exc",
+          "probability": 0.1948519734087309
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "exported_at": "2026-06-16T11:57:33.180063+00:00",
+  "model_count": 9,
+  "models": [
+    {
+      "model_id": "text_low",
+      "modality": "text",
+      "tier": "low",
+      "path": "text_low",
+      "accuracy": 0.40476190476190477,
+      "f1_macro": 0.4007196850341691,
+      "numeric_feature_count": 0,
+      "requires_text": true
+    },
+    {
+      "model_id": "text_medium",
+      "modality": "text",
+      "tier": "medium",
+      "path": "text_medium",
+      "accuracy": 0.3865546218487395,
+      "f1_macro": 0.3858918674405941,
+      "numeric_feature_count": 300,
+      "requires_text": true
+    },
+    {
+      "model_id": "text_high",
+      "modality": "text",
+      "tier": "high",
+      "path": "text_high",
+      "accuracy": 0.3557422969187675,
+      "f1_macro": 0.35464298562245566,
+      "numeric_feature_count": 768,
+      "requires_text": true
+    },
+    {
+      "model_id": "audio_low",
+      "modality": "audio",
+      "tier": "low",
+      "path": "audio_low",
+      "accuracy": 0.28244631185807656,
+      "f1_macro": 0.26531164460738954,
+      "numeric_feature_count": 26,
+      "requires_text": false
+    },
+    {
+      "model_id": "audio_medium",
+      "modality": "audio",
+      "tier": "medium",
+      "path": "audio_medium",
+      "accuracy": 0.3197945845004668,
+      "f1_macro": 0.3130713998241054,
+      "numeric_feature_count": 482,
+      "requires_text": false
+    },
+    {
+      "model_id": "audio_high",
+      "modality": "audio",
+      "tier": "high",
+      "path": "audio_high",
+      "accuracy": 0.3506069094304388,
+      "f1_macro": 0.34000187353355227,
+      "numeric_feature_count": 1082,
+      "requires_text": false
+    },
+    {
+      "model_id": "audio_text_low",
+      "modality": "audio_text",
+      "tier": "low",
+      "path": "audio_text_low",
+      "accuracy": 0.430905695611578,
+      "f1_macro": 0.4298136921349994,
+      "numeric_feature_count": 26,
+      "requires_text": true
+    },
+    {
+      "model_id": "audio_text_medium",
+      "modality": "audio_text",
+      "tier": "medium",
+      "path": "audio_text_medium",
+      "accuracy": 0.41643323996265175,
+      "f1_macro": 0.4137646927262633,
+      "numeric_feature_count": 782,
+      "requires_text": true
+    },
+    {
+      "model_id": "audio_text_high",
+      "modality": "audio_text",
+      "tier": "high",
+      "path": "audio_text_high",
+      "accuracy": 0.3641456582633053,
+      "f1_macro": 0.3621440479398947,
+      "numeric_feature_count": 1850,
+      "requires_text": true
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "model_id": "text_low",
+  "requires_text": true,
+  "text_column": "text",
+  "text_vectorizer": "word_tfidf_low",
+  "numeric_feature_count": 0,
+  "numeric_features": [],
+  "features_by_family": {}
+}
